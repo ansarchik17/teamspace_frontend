@@ -1,0 +1,195 @@
+{
+  "aria": "Рабочее пространство",
+  "userFallback": "Пользователь",
+  "greeting": {
+    "morning": "Доброе утро",
+    "afternoon": "Добрый день",
+    "evening": "Добрый вечер",
+    "withName": "{{greeting}}, {{name}}",
+    "night": "Доброй ночи"
+  },
+  "actions": {
+    "label": "Быстрые действия",
+    "vacation": {
+      "title": "Отпуск",
+      "subtitle": "Заявка"
+    },
+    "itRequest": {
+      "title": "IT-заявка",
+      "subtitle": "SenimDesk"
+    },
+    "document": {
+      "title": "Документ",
+      "subtitle": "В ЭДО"
+    },
+    "task": {
+      "title": "Задача",
+      "subtitle": "Команде"
+    }
+  },
+  "metrics": {
+    "label": "Требуют внимания",
+    "approvals": {
+      "title": "Согласования",
+      "text": "Требуют вашего решения",
+      "short": "Согласования"
+    },
+    "signing": {
+      "title": "Документы на подпись",
+      "text": "На подпись",
+      "short": "На подпись"
+    },
+    "requests": {
+      "title": "Заявки",
+      "text": "Новая заявка",
+      "short": "Заявки"
+    },
+    "noOdoData": "Нет данных из ЭДО",
+    "loading": "Загружаем данные ЭДО…",
+    "noAccess": "Нет доступа к данным ЭДО",
+    "noSdData": "Нет данных из SenimDesk",
+    "sdLoading": "Загружаем заявки SenimDesk…",
+    "noSdAccess": "Нет доступа к заявкам SenimDesk"
+  },
+  "tasks": {
+    "title": "Мои задачи",
+    "openAll": "Открыть все",
+    "create": "Создать",
+    "filterLabel": "Фильтр задач",
+    "tabs": {
+      "all": "Все",
+      "today": "Сегодня",
+      "week": "На неделе",
+      "overdue": "Просроченные"
+    },
+    "loading": "Загружаем задачи…",
+    "empty": {
+      "all": "Задач пока нет",
+      "today": "На сегодня задач нет",
+      "week": "На этой неделе задач нет",
+      "overdue": "Просроченных задач нет"
+    },
+    "emptyHint": "Можно сосредоточиться на главном.",
+    "deadline": {
+      "overdue": "Просрочена",
+      "soon": "Скоро срок",
+      "today": "Сегодня"
+    },
+    "noDue": "Без срока",
+    "open": "Открыть задачу: {{title}}",
+    "priorityTitle": "Приоритет: {{label}}",
+    "priority": {
+      "critical": "Критичный",
+      "high": "Высокий",
+      "medium": "Средний",
+      "low": "Низкий"
+    },
+    "when": {
+      "yesterday": "Вчера",
+      "daysAgo_one": "{{count}} день назад",
+      "daysAgo_few": "{{count}} дня назад",
+      "daysAgo_many": "{{count}} дней назад",
+      "daysAgo_other": "{{count}} дня назад",
+      "today": "Сегодня",
+      "todayAt": "Сегодня, {{time}}",
+      "tomorrow": "Завтра",
+      "tomorrowAt": "Завтра, {{time}}"
+    },
+    "pager": {
+      "label": "Страницы задач",
+      "status": "{{page}} из {{total}}",
+      "prev": "Предыдущие задачи",
+      "next": "Следующие задачи"
+    },
+    "columns": {
+      "title": "Название",
+      "board": "Доска",
+      "due": "Срок",
+      "status": "Статус"
+    }
+  },
+  "news": {
+    "title": "Новости компании",
+    "seeAll": "Смотреть все",
+    "categoriesLabel": "Категории новостей",
+    "tabs": {
+      "all": "Все",
+      "products": "Продукты",
+      "team": "Команда",
+      "events": "События"
+    },
+    "emptyTitle": "Публикаций пока нет",
+    "emptyHint": "Здесь будут новости, анонсы и важные события компании.",
+    "noDetails": "Подробности отсутствуют."
+  },
+  "calendar": {
+    "title": "Мой календарь",
+    "open": "Открыть",
+    "goToday": "Перейти к сегодняшнему дню",
+    "prevMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц",
+    "todayWithDate": "Сегодня, {{date}}",
+    "online": "Онлайн",
+    "meeting": "Встреча",
+    "join": "Присоединиться",
+    "emptyToday": "На сегодня событий нет",
+    "emptyDay": "В этот день событий нет",
+    "weekdays": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Вс"
+    },
+    "today": "Сегодня",
+    "enter": "Войти",
+    "prevWeek": "Предыдущая неделя",
+    "nextWeek": "Следующая неделя"
+  },
+  "ai": {
+    "subtitle": "Чем я могу помочь сегодня?",
+    "prompts": {
+      "findDocument": "Найти документ",
+      "meetingSummary": "Подвести итоги встречи",
+      "draftEmail": "Подготовить письмо"
+    },
+    "inputLabel": "Запрос Workspace AI",
+    "placeholder": "Спросите AI...",
+    "submit": "Отправить запрос",
+    "typing": {
+      "first": "Найди документ",
+      "second": "Подведи итоги встречи",
+      "third": "Подготовь письмо",
+      "fourth": "Какие у меня задачи сегодня?"
+    }
+  },
+  "services": {
+    "title": "Мои сервисы",
+    "configure": "Настроить",
+    "edo": "ЭДО"
+  },
+  "announcements": {
+    "title": "Важные объявления",
+    "all": "Все",
+    "empty": "Важных объявлений нет",
+    "urgent": "Срочно",
+    "important": "Важно",
+    "acknowledge": "Нужно ознакомиться"
+  },
+  "board": {
+    "sprint": "Спринт 14",
+    "backlog": "Бэклог",
+    "inProgress": "В работе",
+    "review": "Ревью",
+    "report": "Отчёт за квартал",
+    "onboarding": "Онбординг",
+    "api": "API платежей",
+    "landing": "Лендинг v2",
+    "design": "Дизайн-ревью",
+    "high": "Высокий",
+    "dateFirst": "12 нояб",
+    "dateSecond": "14 нояб"
+  }
+}

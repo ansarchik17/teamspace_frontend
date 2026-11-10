@@ -1,0 +1,140 @@
+/* TeamSpace splash: shown on first load and while signing in. */
+.axis-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  background: #f6f7f9;
+  font-family: Inter, system-ui, sans-serif;
+  transition: opacity 0.38s ease, visibility 0.38s ease;
+}
+.axis-splash.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.axis-splash__identity {
+  transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.axis-splash.is-hidden .axis-splash__identity {
+  transform: translateY(-12px) scale(1.04);
+}
+
+/* The app fades in underneath while the splash fades out. */
+#root {
+  transition: opacity 0.42s ease, transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+html.axis-splash-active #root {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.axis-splash__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(-12px);
+}
+.axis-splash__emblem {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  display: grid;
+  place-items: center;
+}
+.axis-splash__particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.axis-splash__mark {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.axis-splash__mark.is-ready {
+  opacity: 1;
+}
+.axis-splash__word {
+  width: clamp(280px, 45vw, 380px);
+  overflow: hidden;
+}
+.axis-splash__word img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transform: translateY(8px);
+  clip-path: inset(0 100% 0 0);
+}
+.axis-splash__word.is-ready img {
+  animation: axis-splash-word 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.axis-splash__status {
+  margin: 14px 0 0;
+  min-height: 20px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #586174;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.axis-splash__status.is-ready {
+  opacity: 1;
+}
+.axis-splash__loading {
+  width: 42px;
+  height: 2px;
+  margin-top: 12px;
+  background: #e2e5ea;
+  border-radius: 5px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.axis-splash__loading.is-ready {
+  opacity: 1;
+}
+.axis-splash__loading::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: #2458d3;
+  animation: axis-splash-load 1.4s ease-in-out infinite;
+}
+@keyframes axis-splash-word {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes axis-splash-load {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+@media (max-width: 520px) {
+  .axis-splash__emblem { width: 156px; height: 156px; }
+  .axis-splash__mark { width: 132px; height: 132px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root,
+  .axis-splash,
+  .axis-splash__identity { transition: none !important; }
+  html.axis-splash-active #root { transform: none; }
+  .axis-splash__loading::after { animation: none; }
+  .axis-splash__mark,
+  .axis-splash__word img,
+  .axis-splash__status,
+  .axis-splash__loading {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    animation: none !important;
+  }
+}

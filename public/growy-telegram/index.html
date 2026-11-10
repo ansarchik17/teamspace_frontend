@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Переписка · Workspace</title>
+<link rel="stylesheet" href="./inbox.css?v=workspace-ui-4">
+<script src="./bridge.js" defer></script>
+<script src="./requests.js" defer></script>
+<script src="./history.js" defer></script>
+<script src="./avatar-cache.js" defer></script>
+<script src="./reply-gesture.js?v=workspace-ui-4" defer></script>
+<script src="./realtime.js?v=workspace-ui-4" defer></script>
+<script src="./inbox.js?v=workspace-ui-4" defer></script>
+<style>#site-login, #logout { display: none !important; }</style>
+</head>
+<body>
+<header><span class="brand"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><span class="brand-copy"><strong>Telegram</strong><span id="identity"></span></span></span><div id="account-controls" hidden><select id="account-select" aria-label="Telegram-аккаунт"></select><button id="show-stories" hidden>Истории</button><button id="rename-account">Название</button><button id="disconnect" hidden>Отключить</button><button id="add-account" class="primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Добавить аккаунт</button></div><button id="logout" hidden>Выйти</button></header>
+<div id="notice" role="status" aria-live="polite" hidden></div>
+<main>
+<section id="site-login" class="card">
+<div class="eyebrow">ПЕРЕПИСКА В GROWY</div><h1>Все рабочие диалоги<br>в одном месте</h1><p>Войдите в Workspace, чтобы управлять Telegram-аккаунтами организации.</p>
+<form id="site-form"><label>Логин<input id="site-username" autocomplete="username" required></label><label>Пароль Workspace<input id="site-password" type="password" autocomplete="current-password" required></label><button class="primary">Войти</button></form>
+<form id="site-code-form" hidden><label>Код из письма<input id="site-code" inputmode="numeric" autocomplete="one-time-code" required></label><button class="primary">Подтвердить вход</button></form>
+</section>
+<section id="no-accounts" class="card empty-card" hidden><span class="empty-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></span><h1>Telegram организации</h1><p>Подключите рабочий аккаунт — его чаты будут доступны владельцу и администраторам организации прямо в CRM.</p><button id="add-account-empty" class="primary" type="button">Добавить аккаунт</button></section>
+<section id="connect" class="setup" hidden>
+<aside class="setup-panel accounts-panel" aria-label="Подключённые аккаунты"><div class="setup-panel-head">Аккаунты</div><div id="account-list" role="list"></div><div class="accounts-panel-foot"><button id="add-account-inline" type="button" class="dashed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Добавить аккаунт</button></div></aside>
+<div class="setup-panel connect-panel">
+<div class="connect-copy">
+<div class="eyebrow">ПОДКЛЮЧЕНИЕ АККАУНТА</div><h1 id="connect-title">Подключите Telegram по QR-коду</h1><p id="connect-text">Чаты подключённого аккаунта увидят владелец и администраторы организации. Подключайте аккаунт, который хотите использовать совместно.</p>
+<ol class="connect-steps"><li><span>1</span>Откройте Telegram на телефоне</li><li><span>2</span>Перейдите в Настройки → Устройства → Подключить устройство</li><li><span>3</span>Наведите камеру на код справа</li></ol>
+<div id="connect-options"><button id="qr-start" class="primary">Показать QR-код</button></div>
+<form id="password-form" hidden><label>Пароль Telegram<input id="password" type="password" autocomplete="off" required></label><div class="form-actions"><button class="primary">Подключить</button><button type="button" class="reset">Начать заново</button></div></form>
+</div>
+<div class="connect-qr">
+<div id="qr-placeholder" class="qr-box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg><span id="qr-placeholder-text">QR-код появится здесь</span></div>
+<div id="qr-panel" hidden><img id="qr-image" alt="QR-код для подключения Telegram"><p>Код обновляется автоматически</p><button type="button" class="reset">Начать заново</button></div>
+</div>
+</div>
+</section>
+<section id="inbox" hidden>
+<aside><div class="sidebar-head"><button id="folder-back" type="button" aria-label="Вернуться к основным чатам" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><h2 id="sidebar-title">Чаты</h2><select id="folder" aria-label="Папка чатов" hidden><option value="0">Основные</option><option value="1">Архив</option></select></div><label class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="chat-filter" type="search" placeholder="Поиск чатов" aria-label="Поиск чатов"></label><button id="archive-shortcut" class="dialog" type="button" hidden><span class="avatar archive-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4zM3 4h18v3H3zm9 5v6m-3-3 3 3 3-3"/></svg></span><span class="dialog-info"><strong>Архивированные чаты</strong><small id="archive-preview">Открыть архив</small></span><span id="archive-unread" class="unread" hidden></span></button><div id="dialogs"></div><span id="more-dialogs" role="status" hidden>Загрузка чатов…</span></aside>
+<aside id="topics-aside" hidden aria-label="Темы группы"><div class="topics-aside-head"><button id="topics-list-back" type="button" aria-label="Вернуться к чатам"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><span class="topics-aside-title"><strong id="topics-title"></strong><small id="topics-subtitle">Темы</small></span></div><div id="topics-panel" hidden><div id="topics-list"></div><p id="topics-empty" hidden></p><button id="more-topics" hidden>Ещё темы</button></div></aside>
+<div class="conversation"><div id="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></div><h2 id="empty-title">Выберите чат</h2><p id="empty-description">История и новые сообщения появятся здесь.</p></div><div id="chat-content" hidden><div id="chat-head" class="chat-head"><button id="back" aria-label="Вернуться к чатам">←</button><span id="chat-avatar"></span><div class="chat-heading"><h2 id="chat-title"></h2><div id="typing-status" role="status" hidden></div></div><button id="topics-back" hidden>← Темы</button><input id="message-search" placeholder="Поиск сообщений" aria-label="Поиск сообщений"></div><div id="pinned-bar" hidden><button id="pinned-preview" type="button"><span class="pinned-bar-mark" aria-hidden="true"></span><span class="pinned-bar-copy"><strong id="pinned-preview-label">Закреплённое сообщение</strong><span id="pinned-preview-text"></span></span></button><button id="show-pinned" type="button" aria-label="Все закреплённые сообщения" title="Все закреплённые сообщения"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg><span id="pinned-count"></span></button></div><section id="pinned-browser" hidden aria-label="Закреплённые сообщения"><div class="pinned-browser-head"><button id="pinned-back" type="button" aria-label="Назад в переписку">←</button><h2 id="pinned-browser-title">Закреплённые сообщения</h2><input id="pinned-search" type="search" placeholder="Найти закреплённое" aria-label="Найти закреплённое сообщение"></div><div id="pinned-list" role="list" aria-label="Список закреплённых сообщений"></div><div id="pinned-footer" hidden><button id="unpin-all" type="button"></button></div></section><span id="more-messages" role="status" hidden>Загрузка истории…</span><div id="messages" role="log" aria-label="Переписка"></div><div id="sponsored" hidden></div><div id="reply" hidden><span></span><button id="cancel-reply" aria-label="Отменить ответ">×</button></div><div id="mentions" hidden></div><div id="attachment-preview" hidden aria-live="polite"></div><form id="compose"><label class="attach" title="Прикрепить файл">＋<input id="attachment" type="file" hidden></label><textarea id="text" rows="1" maxlength="4096" placeholder="Написать сообщение…" aria-label="Текст сообщения" title="Сфокусируйте поле и нажмите ⌘V или Ctrl+V, чтобы вставить скриншот"></textarea><button class="primary" id="send">Отправить</button></form></div></div>
+</section>
+</main>
+<dialog id="chat-modal" aria-labelledby="modal-title"><button id="close-modal" aria-label="Закрыть">×</button><h2 id="modal-title"></h2><div id="modal-content"></div></dialog>
+<dialog id="media-viewer" aria-label="Просмотр фотографии"><button id="media-viewer-close" type="button" aria-label="Закрыть просмотр фото">×</button><div class="media-viewer-stage"><span id="media-viewer-loading" role="status" hidden>Загрузка фото…</span><img id="media-viewer-image" alt="" hidden></div></dialog>
+<script>
+(() => {
+  function attachWorkspaceSelect(source) {
+    if (!source || source.dataset.workspaceSelect === 'true') return;
+    source.dataset.workspaceSelect = 'true';
+    source.classList.add('workspace-select-source');
+    source.tabIndex = -1;
+    source.setAttribute('aria-hidden', 'true');
+
+    const root = document.createElement('div');
+    root.className = 'workspace-select';
+    root.id = `${source.id}-workspace-select`;
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'workspace-select-trigger';
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-controls', `${source.id}-workspace-menu`);
+    trigger.setAttribute('aria-label', source.getAttribute('aria-label') || 'Выбрать значение');
+    const label = document.createElement('span');
+    label.className = 'workspace-select-label';
+    const chevron = document.createElement('span');
+    chevron.className = 'workspace-select-chevron';
+    chevron.setAttribute('aria-hidden', 'true');
+    trigger.append(label, chevron);
+
+    const menu = document.createElement('div');
+    menu.className = 'workspace-select-menu';
+    menu.id = `${source.id}-workspace-menu`;
+    menu.setAttribute('role', 'listbox');
+    menu.hidden = true;
+    root.append(trigger, menu);
+    source.insertAdjacentElement('afterend', root);
+
+    function closeMenu(returnFocus = false) {
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      if (returnFocus) trigger.focus();
+    }
+    function choose(option) {
+      if (!option || option.disabled) return;
+      source.value = option.value;
+      source.dispatchEvent(new Event('change', { bubbles: true }));
+      sync();
+      closeMenu(true);
+    }
+    function sync() {
+      const selected = source.options[source.selectedIndex];
+      label.textContent = selected?.textContent?.trim() || 'Выберите значение';
+      trigger.disabled = source.disabled || !source.options.length;
+      menu.replaceChildren();
+      Array.from(source.options).forEach((option) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'workspace-select-option';
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', String(option.value === source.value));
+        item.disabled = option.disabled;
+        const text = document.createElement('span');
+        text.textContent = option.textContent.trim();
+        item.append(text);
+        if (option.value === source.value) {
+          const check = document.createElement('span');
+          check.className = 'workspace-select-check';
+          check.setAttribute('aria-hidden', 'true');
+          check.textContent = '✓';
+          item.append(check);
+        }
+        item.addEventListener('click', () => choose(option));
+        menu.append(item);
+      });
+    }
+    function openMenu() {
+      if (trigger.disabled) return;
+      menu.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      const selected = menu.querySelector('[aria-selected="true"]') || menu.querySelector('[role="option"]');
+      selected?.focus();
+    }
+
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.addEventListener('click', () => menu.hidden ? openMenu() : closeMenu());
+    trigger.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openMenu();
+      }
+    });
+    menu.addEventListener('keydown', (event) => {
+      const options = Array.from(menu.querySelectorAll('[role="option"]:not(:disabled)'));
+      const current = options.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMenu(true);
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const delta = event.key === 'ArrowDown' ? 1 : -1;
+        options[(current + delta + options.length) % options.length]?.focus();
+      } else if (event.key === 'Home') {
+        event.preventDefault();
+        options[0]?.focus();
+      } else if (event.key === 'End') {
+        event.preventDefault();
+        options.at(-1)?.focus();
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        document.activeElement?.click();
+      }
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!root.contains(event.target)) closeMenu();
+    });
+    source.addEventListener('change', sync);
+    new MutationObserver(sync).observe(source, {
+      attributes: true,
+      attributeFilter: ['disabled', 'selected'],
+      childList: true,
+      subtree: true,
+    });
+    sync();
+  }
+
+  attachWorkspaceSelect(document.getElementById('account-select'));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+{
+  "nav": {
+    "myDrive": "Мой диск",
+    "all": "Общие диски",
+    "shared": "Доступные мне",
+    "recent": "Недавние",
+    "favorites": "Избранное",
+    "trash": "Корзина",
+    "sections": "Разделы Drive",
+    "quickAccess": "Быстрый доступ",
+    "notebook": "Deep Research"
+  },
+  "create": {
+    "folder": "Папку",
+    "docx": "Документ Word",
+    "xlsx": "Таблицу Excel",
+    "pptx": "Презентацию",
+    "txt": "Текстовый файл",
+    "upload": "Загрузить файлы"
+  },
+  "createFile": {
+    "titleDocx": "Создать Word документ",
+    "titleXlsx": "Создать Excel таблицу",
+    "titlePptx": "Создать презентацию",
+    "titleTxt": "Создать текстовый файл",
+    "defaultName": "Новый документ",
+    "name": "Имя файла",
+    "placeholder": "Введите имя файла…"
+  },
+  "actions": {
+    "history": "Журнал",
+    "newFolder": "Новая папка",
+    "paste": "Вставить",
+    "pasteHere": "Вставить сюда",
+    "clearClipboard": "Очистить буфер",
+    "deselect": "Снять выделение",
+    "selectAll": "Выбрать все",
+    "restore": "Восстановить",
+    "move": "Переместить",
+    "copy": "Копировать",
+    "sendToChat": "Отправить в чат",
+    "other": "Другие действия",
+    "reset": "Сбросить",
+    "details": "Сведения",
+    "rename": "Переименовать",
+    "favorite": "В избранное",
+    "unfavorite": "Убрать из избранного",
+    "accessReport": "Отчёт по доступам",
+    "checkingAccess": "Проверяем права…",
+    "forItem": "Действия: {{name}}",
+    "selectItem": "Выбрать {{name}}"
+  },
+  "view": {
+    "label": "Вид",
+    "list": "Список",
+    "grid": "Плитка",
+    "sort": "Сортировка",
+    "new": "Новый"
+  },
+  "columns": {
+    "name": "Название",
+    "owner": "Владелец",
+    "modified": "Изменено",
+    "size": "Размер"
+  },
+  "folder": {
+    "name": "Название папки",
+    "path": "Путь к папке",
+    "creating": "Создаём…",
+    "folders": "Папки",
+    "files": "Файлы"
+  },
+  "filters": {
+    "type": "Тип файла",
+    "allTypes": "Все типы",
+    "allOwners": "Все владельцы",
+    "me": "Я",
+    "others": "Другие пользователи",
+    "anyTime": "Любое время",
+    "today": "Сегодня",
+    "week": "За 7 дней",
+    "month": "За 30 дней",
+    "year": "В этом году",
+    "reset": "Сбросить фильтры",
+    "results": "Результаты по запросу «{{query}}»"
+  },
+  "sort": {
+    "nameAsc": "По названию, А–Я",
+    "nameDesc": "По названию, Я–А",
+    "newest": "Сначала новые",
+    "oldest": "Сначала старые",
+    "largest": "Сначала большие",
+    "smallest": "Сначала маленькие"
+  },
+  "empty": {
+    "items": "Нет элементов",
+    "shared": "Нет доступных файлов",
+    "recent": "Нет недавних файлов",
+    "favorites": "В избранном пока пусто",
+    "trash": "Корзина пуста",
+    "all": "Нет общих документов",
+    "folder": "Папка пуста",
+    "trashHint": "Удалённые файлы и папки появятся здесь.",
+    "favoritesHint": "Добавляйте важные документы через меню элемента.",
+    "createHint": "Создайте папку или загрузите файлы.",
+    "accessHint": "В этом разделе пока нет доступных объектов.",
+    "search": "Ничего не найдено",
+    "searchHint": "Измените условия поиска или сбросьте фильтры."
+  },
+  "status": {
+    "loading": "Загружаем…",
+    "loadingFiles": "Загружаем файлы…",
+    "uploading": "Загружаем. Не закрывайте вкладку",
+    "retry": "{{message}}. Повторите попытку"
+  },
+  "clipboard": {
+    "label": "В буфере: {{name}}"
+  },
+  "errors": {
+    "loadFiles": "Не удалось загрузить файлы",
+    "createFolder": "Не удалось создать папку",
+    "createFile": "Не удалось создать файл",
+    "favorite": "Не удалось обновить избранное",
+    "restore": "Не удалось восстановить элемент"
+  },
+  "success": {
+    "created": "Файл \"{{name}}\" успешно создан"
+  },
+  "history": {
+    "title": "Журнал действий",
+    "drive": "Журнал Drive",
+    "page": "Страница {{page}} из {{total}}",
+    "previous": "Предыдущая страница",
+    "next": "Следующая страница",
+    "currentFolder": "текущая папка",
+    "loading": "Загружаем журнал",
+    "empty": "Событий пока нет.",
+    "action": "Действие",
+    "user": "Пользователь",
+    "allActions": "Показываются все действия по доступным файлам и папкам",
+    "ownActions": "Показываются только ваши действия",
+    "justNow": "Только что",
+    "created": "Создание папки",
+    "uploaded": "Загрузка файла",
+    "renamed": "Переименование",
+    "moved": "Перемещение",
+    "edited": "Редактирование",
+    "deleted": "Удаление",
+    "copied": "Копирование",
+    "restored": "Восстановление",
+    "downloaded": "Скачивание файла",
+    "fileDeleted": "Удаление файла"
+  },
+  "time": {
+    "today": "Сегодня, {{time}}",
+    "yesterday": "Вчера, {{time}}"
+  },
+  "owner": {
+    "you": "Вы"
+  },
+  "summary": {
+    "join": "{{files}} и {{folders}}"
+  },
+  "fileTypes": {
+    "docx": "Документ Word",
+    "xlsx": "Таблица Excel",
+    "pptx": "Презентация",
+    "pdf": "PDF",
+    "txt": "Текстовый файл",
+    "doc": "Word (DOC)",
+    "xls": "Excel (XLS)",
+    "ppt": "PowerPoint (PPT)"
+  },
+  "count": {
+    "files_one": "{{count}} файл",
+    "files_few": "{{count}} файла",
+    "files_many": "{{count}} файлов",
+    "files_other": "{{count}} файлов",
+    "folders_one": "{{count}} папка",
+    "folders_few": "{{count}} папки",
+    "folders_many": "{{count}} папок",
+    "folders_other": "{{count}} папок",
+    "items_one": "{{count}} элемент",
+    "items_few": "{{count}} элемента",
+    "items_many": "{{count}} элементов",
+    "items_other": "{{count}} элементов"
+  },
+  "selection": {
+    "files_one": "Выбран {{count}} файл",
+    "files_few": "Выбрано {{count}} файла",
+    "files_many": "Выбрано {{count}} файлов",
+    "files_other": "Выбрано {{count}} файлов",
+    "folders_one": "Выбрана {{count}} папка",
+    "folders_few": "Выбрано {{count}} папки",
+    "folders_many": "Выбрано {{count}} папок",
+    "folders_other": "Выбрано {{count}} папок",
+    "items_one": "Выбран {{count}} элемент",
+    "items_few": "Выбрано {{count}} элемента",
+    "items_many": "Выбрано {{count}} элементов",
+    "items_other": "Выбрано {{count}} элементов"
+  },
+  "editor": {
+    "loadError": "Не удалось загрузить файл",
+    "openError": "Не удалось открыть файл",
+    "pdfTitle": "Просмотр PDF",
+    "previewUnavailable": "Предпросмотр недоступен для этого типа файла",
+    "downloadFile": "Скачать файл"
+  },
+    "notebookJobs": {
+        "progress": {
+            "default": "Анализируем источники…",
+            "queued": "В очереди…",
+            "reading": "Читаю документы…",
+            "analyzing": "Анализирую по частям: {{done}} из {{total}}",
+            "analyzingUnknown": "Анализирую по частям…",
+            "answering": "Формирую ответ…",
+            "verifying": "Проверяю ответ…"
+        },
+        "errors": {
+            "jobFailed": "Не удалось выполнить анализ.",
+            "activeJobSameChat": "Предыдущий анализ в этом блокноте ещё выполняется. Дождитесь результата или остановите его.",
+            "activeJobOtherChat": "Глубокий анализ уже выполняется в другом блокноте. Дождитесь результата или отмените его там.",
+            "minSources": "Выберите минимум {{count}} источника."
+        },
+        "deepStats": "Глубокий анализ: проанализировано частей {{analyzed}} из {{total}}"
+    },
+    "presentation": {
+        "theme": "Оформление",
+        "themes": {
+            "light": "Светлая",
+            "business": "Деловая",
+            "warm": "Тёплая",
+            "dark": "Тёмная"
+        }
+    },
+  "deleteDialog": {
+    "bulkTitle": "Удалить выбранные элементы ({{count}})?",
+    "folderTitle": "Удалить папку?",
+    "fileTitle": "Удалить файл?",
+    "cancel": "Отмена",
+    "confirm": "Удалить",
+    "bulkMessage": "Выбранные элементы ({{count}}) будут перемещены в корзину.",
+    "message": "Объект «{{name}}» будет перемещён в корзину.",
+    "recovery": "Восстановление доступно в разделе «Корзина». Если требуется согласование удаления, сначала будет отправлен запрос владельцу."
+  }
+}

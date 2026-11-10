@@ -1,0 +1,72 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  APP_NAME: "alem-frontend"
+  CONTAINER_NAME: "alem-frontend-container"
+  HOST_PORT: "8082"
+  CONTAINER_PORT: "80"
+  HEALTHCHECK_URL: "http://localhost:8082/health"
+  VITE_API_URL: "/api/v1"
+  VITE_MAIL_APP_URL: "https://inbox.teamspace.kz"
+
+default:
+  tags:
+    - alem-superapp-runners
+  before_script:
+    - docker --version
+    - curl --version
+
+build:
+  stage: build
+  timeout: 20m
+  interruptible: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+  script:
+    - echo "Building frontend Docker image..."
+    - export DOCKER_BUILDKIT=1
+    - |
+      docker build -t "$APP_NAME:latest" \
+        --build-arg VITE_API_URL="$VITE_API_URL" \
+        --build-arg VITE_MAIL_APP_URL="$VITE_MAIL_APP_URL" \
+        --build-arg VERSION="$CI_COMMIT_SHA" \
+        --build-arg BUILD_TIME="$CI_PIPELINE_ID" \
+        .
+
+deploy:
+  stage: deploy
+  timeout: 10m
+  resource_group: alem-frontend-production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+  script:
+    - echo "Deploying frontend container..."
+    - docker stop "$CONTAINER_NAME" || true
+    - docker rm "$CONTAINER_NAME" || true
+    - |
+      docker run -d \
+        --name "$CONTAINER_NAME" \
+        --restart always \
+        -p "$HOST_PORT:$CONTAINER_PORT" \
+        "$APP_NAME:latest"
+    - echo "Waiting for frontend healthcheck..."
+    - |
+      for i in $(seq 1 30); do
+        if curl -fsS "$HEALTHCHECK_URL" >/dev/null 2>&1; then
+          echo "OK: frontend is up"
+          exit 0
+        fi
+        echo "Waiting healthcheck attempt $i/30..."
+        sleep 2
+      done
+
+      echo "ERROR: frontend healthcheck failed"
+      docker ps -a | grep "$APP_NAME" || true
+      docker logs --tail=200 "$CONTAINER_NAME" || true
+      docker inspect "$CONTAINER_NAME" || true
+      exit 1
+
+after_script:
+  - chmod -R u+rwX "$CI_PROJECT_DIR" || true

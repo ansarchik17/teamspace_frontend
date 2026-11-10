@@ -1,0 +1,21 @@
+/* The app root clips overflow. Keep this public form inside its own viewport;
+   auto margins center short cards and yield to scrolling for long cards. */
+.invitation-join { height: 100vh; height: 100dvh; overflow-y: auto; padding: 48px 20px; display: flex; flex-direction: column; align-items: center; background: var(--ts-bg, #f5f7fa); color: var(--ts-text, #17202e); }
+.invitation-card { flex: none; margin-block: auto; width: 100%; max-width: 620px; padding: 36px; background: white; border: 1px solid var(--ts-border, #e2e5ea); border-radius: 16px; box-shadow: 0 8px 32px #17202e08; }
+.invitation-brand { display: block; margin-bottom: 24px; color: var(--ts-action, #2458d3); font-size: 18px; font-weight: 700; }
+.invitation-card h1 { font-size: 26px; line-height: 1.3; font-weight: 650; margin: 0 0 16px; overflow-wrap: anywhere; }
+.invitation-card p { line-height: 1.6; margin: 12px 0; }
+.invitation-form { display: grid; gap: 18px; margin-top: 20px; }
+.invitation-form label, .invitation-link label { display: grid; gap: 7px; min-width: 0; font-size: 14px; font-weight: 500; }
+.invitation-form input, .invitation-form select, .invitation-link input { width: 100%; min-width: 0; height: 42px; border: 1px solid var(--ts-border, #c5cbd3); border-radius: 7px; padding: 8px 12px; background: white; color: inherit; font: inherit; }
+.invitation-form input:focus-visible, .invitation-form select:focus-visible, .invitation-link input:focus-visible { outline: 2px solid var(--ts-action, #2458d3); outline-offset: 2px; }
+.invitation-form input:disabled { background: #f5f7fa; }
+.invitation-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.invitation-verification { display: grid; gap: 12px; padding: 18px; border-radius: 10px; background: #f5f7fa; }
+.invitation-verification p { margin: 0; }
+.invitation-verification .ts-button { justify-self: start; }
+.invitation-identity, .invitation-help { font-size: 14px; color: #586174; overflow-wrap: anywhere; }
+.invitation-error { color: #b42318; background: #fff2f0; border-radius: 8px; padding: 12px; overflow-wrap: anywhere; }
+.invitation-link { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; padding: 18px 24px; background: #f5f7fa; }
+.invitation-link label { flex: 1 1 240px; }
+@media (max-width: 560px) { .invitation-join { padding: 20px 12px; } .invitation-card { padding: 24px 18px; } .invitation-card h1 { font-size: 23px; } .invitation-fields { grid-template-columns: 1fr; } }

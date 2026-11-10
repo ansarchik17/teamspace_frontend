@@ -1,0 +1,439 @@
+# A run holds the shared host lock for its complete pipeline.
+# The job timeout includes queue waiting; individual steps retain bounded timeouts.
+name: Frontend CI/CD
+'on':
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**/*.md'
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+env:
+  ROLLDOWN_WORKER_THREADS: '1'
+  RAYON_NUM_THREADS: '1'
+  GOMAXPROCS: '1'
+  GOFLAGS: -p=1
+  GOMEMLIMIT: 768MiB
+  NODE_OPTIONS: --max-old-space-size=768
+  MAVEN_OPTS: -Xmx768m
+  DOCKER_BUILD_RECORD_UPLOAD: 'false'
+  NODE_VERSION: '22'
+  # Match the exact playwright devDependency; the image supplies browser binaries.
+  PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.62.1-noble
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/workspace-front
+  WHITEBOARD_BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/workspace-front-whiteboard-backend
+  WHITEBOARD_FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/workspace-front-whiteboard-frontend
+  MAIL_IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/workspace-front-mail
+  VITE_API_URL: /api/v1
+  VITE_MAIL_APP_URL: https://inbox.teamspace.kz
+  VITE_TENANT_WORKSPACE_ENABLED: 'true'
+  VITE_TENANT_BASE_DOMAIN: teamspace.kz
+  VITE_APP_VERSION: ${{ github.sha }}
+  VITE_BUILD_TIME: ${{ github.run_id }}
+jobs:
+  checks:
+    name: Checks and build validation
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && !(github.event_name ==
+      'push' && github.ref == 'refs/heads/main')
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - frontend
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    steps:
+      - name: Use temporary registry credentials
+        working-directory: ${{ runner.temp }}
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-docker"
+          chmod 700 "$RUNNER_TEMP/ci-docker"
+          echo "DOCKER_CONFIG=$RUNNER_TEMP/ci-docker" >> "$GITHUB_ENV"
+        timeout-minutes: 10
+      - name: 'Lint and build: Checkout'
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+        timeout-minutes: 20
+      - name: 'Lint and build: Setup Node'
+        uses: actions/setup-node@v5
+        with:
+          package-manager-cache: false
+          node-version: ${{ env.NODE_VERSION }}
+        timeout-minutes: 20
+      - name: 'Lint and build: Install dependencies'
+        run: npm ci --prefer-offline --no-fund
+        timeout-minutes: 20
+      - name: 'Lint and build: Lint'
+        shell: bash
+        run: |
+          cache_root="$RUNNER_TOOL_CACHE/workspace-ci/$GITHUB_REPOSITORY_ID/eslint"
+          # Syntax-only rules: invalidate when dependencies or ESLint config change.
+          cache_key="$(sha256sum package-lock.json eslint.config.js | sha256sum | cut -d ' ' -f 1)"
+          mkdir -p "$cache_root"
+          npm run lint -- --cache --cache-strategy content --cache-location "$cache_root/$cache_key"
+        timeout-minutes: 20
+      - name: Test component image cache invalidation
+        run: python3 -m unittest discover -s scripts/ci -p 'test_*.py'
+        timeout-minutes: 2
+      - name: 'Lint and build: Validate translations'
+        run: npm run i18n:check
+        timeout-minutes: 20
+      - name: 'Lint and build: Test notes image upload'
+        run: node --test tests/notePhotoUpload.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test corporate login and SSO callback'
+        run: |
+          node --test tests/corporateLogin.test.mjs tests/authCallbackSession.test.mjs
+          node scripts/test-linked-growy-session.cjs
+          node scripts/test-board-status-change.cjs
+          node scripts/test-odo-dashboard-counts.cjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test iForm company bridge'
+        run: node --test tests/iformBridge.test.mjs
+        timeout-minutes: 20
+      - name: Drive folder authorization
+        run: node --test tests/driveFolderAccess.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test Deep Research source selection and citations'
+        run: node --test tests/notebookResearch.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test Deep Research background jobs'
+        run: node --test tests/notebookJobs.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test Deep Research presentation design'
+        run: node --test tests/presentationDesign.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test workspace favorites'
+        run: node --test tests/workspaceFavorites.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test administration API contract'
+        run: node --test tests/administration-api.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test account recovery, invitations and note filters'
+        run: node --test tests/accountRecovery.test.mjs tests/organizationInvitations.test.mjs tests/noteFilters.test.mjs tests/regressionReport20261023.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test corporate mailbox naming and preservation'
+        run: node scripts/test-mail-naming.mjs
+        timeout-minutes: 10
+      - name: 'Lint and build: Test whiteboard shared authentication safeguards'
+        run: python3 tests/whiteboard_keycloak_test.py
+        timeout-minutes: 5
+      - name: 'Lint and build: Test meeting transcript'
+        run: node --test tests/meetTranscript.test.mjs tests/meetAccountGate.test.mjs tests/meetingActions.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Validate application nginx routes'
+        run: docker run --rm --volume "$PWD/docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.27-alpine nginx -t
+        timeout-minutes: 20
+      - name: 'Lint and build: Test accounted AI ingress'
+        run: python3 scripts/test-ai-ingress.py --image nginx:1.27-alpine
+        timeout-minutes: 5
+      - name: 'Lint and build: Build'
+        env:
+          NODE_OPTIONS: --max-old-space-size=1024
+          VITE_API_URL: ${{ env.VITE_API_URL }}
+        run: |
+          npm run typecheck
+          NODE_OPTIONS=--max-old-space-size=640 npm run build:bundle
+        timeout-minutes: 20
+      - name: 'Lint and build: Start production bundle in Chromium'
+        run: |
+          docker run --rm --init --network=none --memory=768m --memory-swap=1024m --cpus=1 --pids-limit=256 --shm-size=256m \
+            --volume "$PWD:/repo:ro" --workdir /repo "$PLAYWRIGHT_IMAGE" node scripts/test-production-build.mjs
+          docker run --rm --init --network=none --memory=1024m --memory-swap=1280m --cpus=1 --pids-limit=256 --shm-size=256m \
+            --volume "$PWD:/repo:ro" --workdir /repo "$PLAYWRIGHT_IMAGE" node scripts/test-meet-actions-browser.mjs
+        timeout-minutes: 10
+  release:
+    name: Tests, build and deploy
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name == 'push'
+      && github.ref == 'refs/heads/main')
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - frontend
+    timeout-minutes: 360
+    permissions:
+      contents: read
+      packages: write
+    environment: production
+    steps:
+      - name: Use temporary registry credentials
+        working-directory: ${{ runner.temp }}
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/ci-docker"
+          chmod 700 "$RUNNER_TEMP/ci-docker"
+          echo "DOCKER_CONFIG=$RUNNER_TEMP/ci-docker" >> "$GITHUB_ENV"
+        timeout-minutes: 10
+      - name: 'Lint and build: Checkout'
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+        timeout-minutes: 20
+      - name: 'Lint and build: Setup Node'
+        uses: actions/setup-node@v5
+        with:
+          package-manager-cache: false
+          node-version: ${{ env.NODE_VERSION }}
+        timeout-minutes: 20
+      - name: 'Lint and build: Install dependencies'
+        run: npm ci --prefer-offline --no-fund
+        timeout-minutes: 20
+      - name: 'Lint and build: Lint'
+        shell: bash
+        run: |
+          cache_root="$RUNNER_TOOL_CACHE/workspace-ci/$GITHUB_REPOSITORY_ID/eslint"
+          # Syntax-only rules: invalidate when dependencies or ESLint config change.
+          cache_key="$(sha256sum package-lock.json eslint.config.js | sha256sum | cut -d ' ' -f 1)"
+          mkdir -p "$cache_root"
+          npm run lint -- --cache --cache-strategy content --cache-location "$cache_root/$cache_key"
+        timeout-minutes: 20
+      - name: Test component image cache invalidation
+        run: python3 -m unittest discover -s scripts/ci -p 'test_*.py'
+        timeout-minutes: 2
+      - name: 'Lint and build: Validate translations'
+        run: npm run i18n:check
+        timeout-minutes: 20
+      - name: 'Lint and build: Test notes image upload'
+        run: node --test tests/notePhotoUpload.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test corporate login and SSO callback'
+        run: |
+          node --test tests/corporateLogin.test.mjs tests/authCallbackSession.test.mjs
+          node scripts/test-linked-growy-session.cjs
+          node scripts/test-board-status-change.cjs
+          node scripts/test-odo-dashboard-counts.cjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test iForm company bridge'
+        run: node --test tests/iformBridge.test.mjs
+        timeout-minutes: 20
+      - name: Drive folder authorization
+        run: node --test tests/driveFolderAccess.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test Deep Research source selection and citations'
+        run: node --test tests/notebookResearch.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test Deep Research background jobs'
+        run: node --test tests/notebookJobs.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test Deep Research presentation design'
+        run: node --test tests/presentationDesign.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test workspace favorites'
+        run: node --test tests/workspaceFavorites.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test administration API contract'
+        run: node --test tests/administration-api.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test account recovery, invitations and note filters'
+        run: node --test tests/accountRecovery.test.mjs tests/organizationInvitations.test.mjs tests/noteFilters.test.mjs tests/regressionReport20261023.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Test corporate mailbox naming and preservation'
+        run: node scripts/test-mail-naming.mjs
+        timeout-minutes: 10
+      - name: 'Lint and build: Test whiteboard shared authentication safeguards'
+        run: python3 tests/whiteboard_keycloak_test.py
+        timeout-minutes: 5
+      - name: 'Lint and build: Test meeting transcript'
+        run: node --test tests/meetTranscript.test.mjs tests/meetAccountGate.test.mjs tests/meetingActions.test.mjs
+        timeout-minutes: 20
+      - name: 'Lint and build: Validate application nginx routes'
+        run: docker run --rm --volume "$PWD/docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro" nginx:1.27-alpine nginx -t
+        timeout-minutes: 20
+      - name: 'Lint and build: Test accounted AI ingress'
+        run: python3 scripts/test-ai-ingress.py --image nginx:1.27-alpine
+        timeout-minutes: 5
+      - name: 'Lint and build: Build'
+        env:
+          NODE_OPTIONS: --max-old-space-size=1024
+          VITE_API_URL: ${{ env.VITE_API_URL }}
+        run: |
+          npm run typecheck
+          NODE_OPTIONS=--max-old-space-size=640 npm run build:bundle
+        timeout-minutes: 20
+      - name: 'Lint and build: Start production bundle in Chromium'
+        run: |
+          docker run --rm --init --network=none --memory=768m --memory-swap=1024m --cpus=1 --pids-limit=256 --shm-size=256m \
+            --volume "$PWD:/repo:ro" --workdir /repo "$PLAYWRIGHT_IMAGE" node scripts/test-production-build.mjs
+          docker run --rm --init --network=none --memory=1024m --memory-swap=1280m --cpus=1 --pids-limit=256 --shm-size=256m \
+            --volume "$PWD:/repo:ro" --workdir /repo "$PLAYWRIGHT_IMAGE" node scripts/test-meet-actions-browser.mjs
+        timeout-minutes: 10
+      - name: 'Build and publish image: Set up bounded local image builder'
+        uses: docker/setup-buildx-action@v3
+        with:
+          name: ci-${{ github.event.repository.name }}
+          keep-state: true
+          cache-binary: false
+          driver-opts: |
+            memory=2g
+            memory-swap=2304m
+            cpu-quota=100000
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 1
+              gc = true
+              reservedSpace = "512MB"
+              maxUsedSpace = "3GB"
+              minFreeSpace = "30GB"
+        timeout-minutes: 30
+      - name: 'Build and publish image: Login to GHCR'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+        timeout-minutes: 30
+      - name: 'Build and publish image: Build and push'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.ci
+          push: true
+          load: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:main
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+        timeout-minutes: 30
+      - name: Resolve unchanged whiteboard backend image
+        id: whiteboard_backend_cache
+        env:
+          COMPONENT_IMAGE: ${{ env.WHITEBOARD_BACKEND_IMAGE }}
+        run: python3 scripts/ci/reuse-image.py --image "$COMPONENT_IMAGE" --context deploy/whiteboard/source/backend
+        timeout-minutes: 3
+      - name: 'Build and publish image: Build and push whiteboard backend'
+        if: steps.whiteboard_backend_cache.outputs.hit != 'true'
+        id: whiteboard_backend_build
+        uses: docker/build-push-action@v6
+        with:
+          context: deploy/whiteboard/source/backend
+          push: true
+          load: true
+          tags: |
+            ${{ env.WHITEBOARD_BACKEND_IMAGE }}:${{ github.sha }}
+            ${{ steps.whiteboard_backend_cache.outputs.tag }}
+            ${{ env.WHITEBOARD_BACKEND_IMAGE }}:main
+        timeout-minutes: 30
+      - name: Resolve unchanged whiteboard frontend image
+        id: whiteboard_frontend_cache
+        env:
+          COMPONENT_IMAGE: ${{ env.WHITEBOARD_FRONTEND_IMAGE }}
+        run: python3 scripts/ci/reuse-image.py --image "$COMPONENT_IMAGE" --context deploy/whiteboard/source/frontend
+        timeout-minutes: 3
+      - name: 'Build and publish image: Build and push whiteboard frontend'
+        if: steps.whiteboard_frontend_cache.outputs.hit != 'true'
+        id: whiteboard_frontend_build
+        uses: docker/build-push-action@v6
+        with:
+          context: deploy/whiteboard/source/frontend
+          push: true
+          load: true
+          tags: |
+            ${{ env.WHITEBOARD_FRONTEND_IMAGE }}:${{ github.sha }}
+            ${{ steps.whiteboard_frontend_cache.outputs.tag }}
+            ${{ env.WHITEBOARD_FRONTEND_IMAGE }}:main
+        timeout-minutes: 30
+      - name: Resolve unchanged mail image
+        id: mail_cache
+        env:
+          COMPONENT_IMAGE: ${{ env.MAIL_IMAGE_NAME }}
+        run: python3 scripts/ci/reuse-image.py --image "$COMPONENT_IMAGE" --context deploy/mail/source
+        timeout-minutes: 3
+      - name: 'Build and publish image: Build and push mail'
+        if: steps.mail_cache.outputs.hit != 'true'
+        id: mail_build
+        uses: docker/build-push-action@v6
+        with:
+          context: deploy/mail/source
+          push: true
+          load: true
+          tags: |
+            ${{ env.MAIL_IMAGE_NAME }}:${{ github.sha }}
+            ${{ steps.mail_cache.outputs.tag }}
+            ${{ env.MAIL_IMAGE_NAME }}:main
+          labels: |
+            org.opencontainers.image.source=https://github.com/west6ide/workspace-mail
+            org.opencontainers.image.revision=${{ github.sha }}
+        timeout-minutes: 30
+      - name: 'Deploy to production: Install whiteboard deployment files'
+        run: |
+          install -d -m 0750 /opt/workspace/whiteboard /opt/workspace/whiteboard/keycloak
+          install -m 0640 deploy/whiteboard/compose.yml /opt/workspace/whiteboard/compose.yml
+          install -m 0640 deploy/whiteboard/compose.yml.shared.yml /opt/workspace/whiteboard/compose.yml.shared.yml
+          install -m 0640 deploy/whiteboard/compose.keycloak-shared.yml /opt/workspace/whiteboard/
+          install -m 0640 deploy/whiteboard/compose.keycloak-shared.yml.shared.yml /opt/workspace/whiteboard/
+          install -m 0750 deploy/whiteboard/deploy.sh /opt/workspace/whiteboard/deploy.sh
+          install -m 0750 deploy/whiteboard/shared-mode.sh /opt/workspace/whiteboard/
+          install -m 0750 deploy/whiteboard/shared-keycloak.sh /opt/workspace/whiteboard/
+          install -m 0750 deploy/whiteboard/keycloak/verify-shared.py /opt/workspace/whiteboard/keycloak/
+          install -m 0750 deploy/whiteboard/keycloak/preflight-shared.py /opt/workspace/whiteboard/keycloak/
+          install -m 0640 deploy/whiteboard/keycloak/realm_transfer.py /opt/workspace/whiteboard/keycloak/
+          install -m 0640 deploy/whiteboard/keycloak/OPERATIONS.txt /opt/workspace/whiteboard/keycloak/
+          install -m 0644 deploy/whiteboard/keycloak/shared-proxy.conf /opt/workspace/whiteboard/keycloak/
+          install -m 0640 deploy/whiteboard/keycloak/whiteboard-realm.json /opt/workspace/whiteboard/keycloak/whiteboard-realm.json
+          printf 'WHITEBOARD_BACKEND_IMAGE_REF=%s\nWHITEBOARD_FRONTEND_IMAGE_REF=%s\n' \
+            '${{ env.WHITEBOARD_BACKEND_IMAGE }}@${{ steps.whiteboard_backend_cache.outputs.digest || steps.whiteboard_backend_build.outputs.digest }}' \
+            '${{ env.WHITEBOARD_FRONTEND_IMAGE }}@${{ steps.whiteboard_frontend_cache.outputs.digest || steps.whiteboard_frontend_build.outputs.digest }}' \
+            > /opt/workspace/whiteboard/images.env
+          chmod 0640 /opt/workspace/whiteboard/images.env
+        timeout-minutes: 20
+      - name: 'Deploy to production: Login to GHCR'
+        run: |
+          # Keep this job's temporary credentials AND Buildx metadata through
+          # post-job cleanup, which stops the builder while preserving its cache.
+          : "${DOCKER_CONFIG:?Temporary Docker config is required}"
+          mkdir -p "$DOCKER_CONFIG"
+          for attempt in 1 2 3 4 5; do
+            if printf '%s' "$GHCR_TOKEN" | timeout 90s docker login ghcr.io --username "$GHCR_USER" --password-stdin; then
+              exit 0
+            fi
+            echo "GHCR login failed (attempt ${attempt}/5); retrying..." >&2
+            sleep $((attempt * 10))
+          done
+          exit 1
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+          GHCR_USER: ${{ github.actor }}
+        timeout-minutes: 20
+      - name: 'Deploy to production: Deploy whiteboard'
+        run: /opt/workspace/whiteboard/deploy.sh
+        timeout-minutes: 20
+      - name: 'Deploy to production: Install mail deployment files'
+        run: |
+          install -d -m 0750 /opt/workspace/mail /opt/workspace/nginx
+          install -m 0640 deploy/mail/compose.production.yaml /opt/workspace/mail/compose.production.yaml
+          install -m 0640 deploy/mail/compose.production.yaml.shared.yml /opt/workspace/mail/compose.production.yaml.shared.yml
+          install -m 0750 deploy/mail/deploy.sh /opt/workspace/mail/deploy.sh
+          install -m 0750 deploy/mail/shared-mode.sh /opt/workspace/mail/
+          install -m 0640 deploy/mail/nginx/inbox.teamspace.kz.conf /opt/workspace/nginx/inbox.teamspace.kz.conf
+          printf 'MAIL_APP_IMAGE=%s\n' '${{ env.MAIL_IMAGE_NAME }}@${{ steps.mail_cache.outputs.digest || steps.mail_build.outputs.digest }}' > /opt/workspace/mail/images.env
+          chmod 0640 /opt/workspace/mail/images.env
+        timeout-minutes: 20
+      - name: 'Deploy to production: Deploy mail'
+        run: /opt/workspace/mail/deploy.sh
+        timeout-minutes: 20
+      - name: 'Deploy to production: Select frontend image'
+        run: |
+          /opt/workspace/scripts/set-image.sh frontend \
+            "${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        timeout-minutes: 20
+      - name: 'Deploy to production: Deploy frontend'
+        run: |
+          if ! /opt/workspace/scripts/deploy.sh frontend; then
+            /opt/workspace/scripts/deploy.sh frontend rollback || true
+            exit 1
+          fi
+        timeout-minutes: 20

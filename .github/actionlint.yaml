@@ -1,0 +1,12 @@
+self-hosted-runner:
+  labels:
+    - iform
+    - backend
+    - frontend
+    - mail
+    - workspace-ai
+    - growy
+    - sd-backend
+    - sd-frontend
+    - odo-backend
+    - odo-frontend

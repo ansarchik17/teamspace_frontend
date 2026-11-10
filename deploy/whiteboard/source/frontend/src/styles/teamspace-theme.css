@@ -1,0 +1,15 @@
+@import './teamspace-tokens.css';
+@import './teamspace-fonts.css';
+/* Adapter for independently built TeamSpace applications. */
+:root { --font-sans: var(--ts-font); }
+body { font-family: var(--ts-font); color: var(--ts-text); background: var(--ts-bg); }
+button,input,textarea,select { font-family: inherit; }
+:where(button,a,input,textarea,select,summary,[tabindex]):focus-visible { outline: 2px solid var(--ts-action); outline-offset: 3px; }
+input[type=checkbox],input[type=radio] { accent-color: var(--ts-action); }
+
+.excalidraw { --color-primary:var(--ts-action); --color-primary-darker:var(--ts-action-hover); --color-primary-light:var(--ts-selection); --border-radius-lg:var(--ts-radius-panel); }
+.collab-toolbar { font-family:var(--ts-font); border-radius:var(--ts-radius-panel); box-shadow:var(--ts-shadow-menu); }
+.collab-toolbar button { border-radius:var(--ts-radius-control); min-height:36px; font-size:13px; }
+
+.excalidraw .whiteboard-create-room-menu-item { color:var(--ts-action); }
+.excalidraw .whiteboard-create-room-menu-item:hover { color:var(--ts-action-hover); }

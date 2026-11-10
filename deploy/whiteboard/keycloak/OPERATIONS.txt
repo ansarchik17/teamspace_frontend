@@ -1,0 +1,97 @@
+Whiteboard authentication consolidation
+
+Shared mode is opt-in. CI installs its files but does not migrate or overwrite a
+realm. The deploy script requires a root-owned .shared-keycloak.json marker and
+verifies the live issuer and signing keys before selecting shared Compose.
+The existing standalone configuration remains the default until cutover.
+
+Local rehearsal
+  npm ci
+  python3 tests/whiteboard_keycloak_test.py
+  python3 scripts/test-whiteboard-keycloak.py
+The integration test needs Docker, Playwright Chromium and free loopback port 80.
+It creates its own internal network, H2 volume, PostgreSQL, two Keycloak 24
+instances and a small proxy. It uses synthetic accounts only, verifies PKCE login
+and old JWT signatures, then removes only its own containers/networks/volumes.
+Do not run this memory-intensive rehearsal on the production runner.
+
+Production preconditions
+- Use the dedicated Beles Workspace console with exclusive terminal automation.
+  The read-only preflight refuses any host except vds38185.vpsza500.kz.
+- Run keycloak/preflight-shared.py from the installed directory with its adjacent
+  realm_transfer.py. Its output includes counts and hashes only. Authentication
+  failure or an existing destination whiteboard realm blocks automatic migration.
+  If the source has no working administrator, stop and investigate the full CLI
+  export of its offline copy; do not reset credentials. KC24 omits the users field
+  for an empty realm. Normalize this to [] only after a separate read-only SQL
+  count on the copied H2 database proves USER_ENTITY is empty and no external
+  user-storage provider is configured. Keep that proof with the untouched export.
+- Coordinate pending frontend deployments before cutover. An older workflow can
+  restore the standalone deployment files; it must finish or be cancelled first.
+- Require the same rehearsed image on both sides: Keycloak 24.0.0. Confirm the
+  actual public issuer, hostname/default HTTPS port, clients and current routes.
+- Preserve the board backend, its SQLite volume and the S3 bucket. Do not restart
+  the backend for the authentication cutover: live board changes are autosaved
+  asynchronously, without a shutdown flush in the current application.
+
+Backup and transfer sequence (operator steps, not performed automatically)
+1. Acquire the whiteboard deployment lock; exclude other deploys for the change.
+   Create a root-only backup directory (0700; secret files 0600). Record exact
+   image IDs, source inspect/configuration, deployment files, memory and storage
+   baselines. Take a consistent main Keycloak PostgreSQL backup and SQLite backup.
+   Keep credentials, full realm exports and password hashes on the server only.
+2. Save a stopped rollback clone of the original whiteboard container, including
+   its original image, command, environment, mounts and network settings. Do not
+   give it Compose project labels; keep restart policy 'no' and label retention.
+   Keep the original H2 volume. Never use docker compose down -v or volume prune.
+3. Stop only the source whiteboard Keycloak. Copy its now-quiescent H2 volume into
+   a temporary export volume; archive and verify the original data separately.
+   Export the COPY using the original image and the full CLI export command:
+     export --db=dev-file --realm=whiteboard --dir=/exports --users=realm_file
+   With --network none, set --hostname localhost so H2 AUTO_SERVER resolves its
+   own hostname. Bound JVM memory and keep the export destination root-only.
+4. Refuse an existing destination realm or colliding realm ID. Import only the
+   full whiteboard realm with prepare_export/import_new, initially disabled.
+   Preserve user IDs, credentials, clients, roles/groups and key-provider secrets.
+   Do not export/import master or replace the Workspace realm.
+5. Restore KC24's known built-in-client logout defaults while disabled, then
+   compare the complete user/client/role snapshots. Check the full realm settings,
+   flows/providers, signing-key hash and public OIDC addresses separately. Preserve
+   the source public issuer using this realm's frontendUrl; do not change the main
+   Keycloak hostname, relative path or Workspace realm.
+6. If the source was restarted during verification, stop it again, export a fresh
+   offline copy and require equality with the imported export before switching.
+   Enable the verified destination.
+   Write the verified migration marker atomically, root-owned and mode 0644:
+     version=1, status=verified, realm=whiteboard, target=workspace-keycloak,
+     issuer=<original exact issuer>, jwks_sha256=<verify-shared.keys_hash>
+   Select the shared Compose matching the existing storage mode and recreate ONLY
+   the keycloak service. Once the bridge answers, install the updated whiteboard
+   frontend nginx routes (unique whiteboard-keycloak DNS name), validate nginx
+   and reload it. Keep the backend and its current data connections running.
+7. Verify public login/PKCE, issuer, old-token signature, proxy health and denied
+   master/admin/other-realm routes. Verify the main Workspace login independently.
+   Reconcile board-object baselines with any legitimate concurrent board edits.
+   Check local users and all original storage mounts, then measure RAM and CI.
+
+Production verification limits recorded on 2026-10-27
+The source realm and board-local SQLite contained zero users; 23 S3 objects were
+preserved. Password/PKCE continuity was exercised with synthetic users in the
+isolated rehearsal. The old public axisworkspace.kz URLs already returned HTML,
+and teamspace.kz whiteboard discovery returned 403 before cutover. Preserve and
+report that baseline separately; a working internal discovery endpoint does not
+prove that public whiteboard login works. Repairing those legacy routes requires
+its own routing/issuer/backend compatibility check.
+
+Rollback
+Stop the bridge, disable the new destination whiteboard realm, restore the saved
+standalone deployment selection and start the retained original H2 container with
+its original whiteboard-keycloak/keycloak network names. Validate/reload frontend
+nginx and recheck both logins. Do not restore the entire active Workspace database
+as an authentication rollback: that could erase unrelated concurrent user changes.
+Keep the failed destination realm disabled and the backups for investigation; do
+not overwrite it or silently reuse it on a repeated migration attempt.
+
+Keycloak CLI realm export does not transfer SSO sessions. A user may need to sign
+in again even when their password, subject and unexpired JWT signing keys remain
+unchanged. This must be included in the final production verification report.

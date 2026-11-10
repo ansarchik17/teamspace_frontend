@@ -1,0 +1,75 @@
+{
+  "language": {
+    "label": "Язык",
+    "ru": "Русский",
+    "kk": "Қазақша"
+  },
+  "actions": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "create": "Создать",
+    "open": "Открыть",
+    "back": "Назад",
+    "retry": "Повторить",
+    "search": "Поиск",
+    "confirm": "Подтвердить",
+    "download": "Скачать",
+    "upload": "Загрузить",
+    "share": "Поделиться",
+    "more": "Ещё",
+    "reject": "Отклонить",
+    "logout": "Выйти",
+    "hide": "Скрыть"
+  },
+  "status": {
+    "loading": "Загрузка…",
+    "saving": "Сохранение…",
+    "empty": "Ничего не найдено",
+    "inProgress": "Выполняется…",
+    "updating": "Обновление…",
+    "success": "Успешно"
+  },
+  "time": {
+    "today": "Сегодня",
+    "yesterday": "Вчера"
+  },
+  "count": {
+    "items_one": "{{count}} элемент",
+    "items_few": "{{count}} элемента",
+    "items_many": "{{count}} элементов",
+    "items_other": "{{count}} элемента"
+  },
+  "select": {
+    "placeholder": "Выберите значение",
+    "search": "Поиск…",
+    "selected": "Выбрано: {{count}}",
+    "all": "Все",
+    "clearSearch": "Очистить поиск",
+    "expandGroup": "Раскрыть подразделения",
+    "collapseGroup": "Свернуть подразделения"
+  },
+  "toast": {
+    "close": "Закрыть уведомление"
+  },
+  "view": {
+    "label": "Вид"
+  },
+  "driveStorage": {
+    "used": "Использовано {{used}}",
+    "usedOf": "Использовано {{used}} из {{limit}}",
+    "zeroBytes": "0 Б",
+    "fullness": "Заполненность хранилища"
+  },
+  "password": {
+    "show": "Показать пароль",
+    "hide": "Скрыть пароль"
+  },
+  "date": {
+    "any": "Любая дата",
+    "clear": "Очистить",
+    "reset": "Сбросить дату"
+  }
+}

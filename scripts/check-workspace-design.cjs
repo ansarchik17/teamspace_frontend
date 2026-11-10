@@ -1,0 +1,72 @@
+// Local visual QA. Credentials are supplied in environment variables, never stored.
+const { chromium } = require(process.env.WORKSPACE_PLAYWRIGHT || 'C:/Users/skydy/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs = require('node:fs');
+const path = require('node:path');
+
+(async () => {
+  const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' });
+  const context = await browser.newContext({ viewport: { width: 1536, height: 1024 }, deviceScaleFactor: 1 });
+  const login = await context.request.post('http://localhost:5173/api/v1/auth/login', { data: { identifier: process.env.WORKSPACE_LOGIN, password: process.env.WORKSPACE_PASSWORD } });
+  if (!login.ok()) throw new Error('Local login failed: ' + login.status());
+  const auth = await login.json();
+  await context.addInitScript(data => {
+    localStorage.setItem('superapp.auth.tokens', JSON.stringify({ accessToken: data.access_token, refreshToken: data.refresh_token, tokenType: data.token_type || 'Bearer', expiresIn: data.expires_in || 86400, expiresAt: data.expires_at || new Date(Date.now() + 86400000).toISOString() }));
+  }, auth);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.goto('http://localhost:5173/web/workspace', { waitUntil: 'commit', timeout: 120000 });
+  await page.locator('.wr-dashboard').waitFor({ timeout: 120000 });
+  await page.evaluate(() => document.fonts.ready);
+  console.log('Font widths:', await page.evaluate(() => { const c=document.createElement('canvas').getContext('2d'); return ['Roboto','Inter','Arial'].map(f=>{ c.font='700 34px '+f; return [f,c.measureText('Доброе утро, Тамерлан!').width]; }); }));
+  const out = path.resolve('artifacts/workspace-design');
+  fs.mkdirSync(out, { recursive: true });
+  await page.screenshot({ path: path.join(out, 'desktop.png'), fullPage: true });
+  console.log('Desktop geometry:', JSON.stringify(await page.evaluate(() => Object.fromEntries(['.wr-layout','.wr-actions','.wr-tasks','.wr-calendar','.wr-metrics','.wr-news','.wr-ai','.wr-services','.wr-quote'].map(s => { const r=document.querySelector(s).getBoundingClientRect(); return [s, {x:r.x,y:r.y,w:r.width,h:r.height}]; })))));
+  await page.getByRole('tab', { name: 'Просроченные', exact: true }).click();
+  await page.getByText('Просроченных задач нет', { exact: true }).waitFor();
+  await page.getByRole('tab', { name: 'Сегодня', exact: true }).click();
+  if (await page.locator('.wr-news-card').count()) {
+    await page.getByRole('tab', { name: 'Команда', exact: true }).click();
+    await page.getByRole('tab', { name: 'Все', exact: true }).last().click();
+    await page.locator('.wr-news-card').first().click();
+    await page.locator('[role="dialog"]').waitFor();
+    await page.keyboard.press('Escape');
+    await page.locator('[role="dialog"]').waitFor({state:'hidden'});
+  }
+  await page.keyboard.press('Control+k');
+  if (!await page.locator('input[aria-label="Поиск и быстрые действия"]').evaluate(e => e === document.activeElement)) throw new Error('Search shortcut failed');
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('.wr-dashboard').evaluate(e => e.closest('.overflow-auto').scrollTop = 0);
+  await page.screenshot({path:path.join(out,'mobile.png'),fullPage:true});
+  const overflow = await page.evaluate(() => [...document.querySelectorAll('.wr-dashboard, .workspace-app-main')].some(e=>e.scrollWidth>e.clientWidth+1));
+  if (overflow) throw new Error('Mobile horizontal overflow');
+  await page.locator('.wr-services').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(out,'mobile-services.png')});
+  await page.setViewportSize({width:1024,height:768});
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.locator('.wr-dashboard').waitFor();
+  await page.locator('.wr-dashboard').evaluate(e => e.closest('.overflow-auto').scrollTop = 0);
+  await page.screenshot({path:path.join(out,'tablet.png'),fullPage:true});
+  await page.getByRole('button',{name:'Меню навигации',exact:true}).click();
+  if (!await page.getByRole('button',{name:'Messenger',exact:true}).last().isVisible()) throw new Error('Tablet navigation failed');
+  await page.setViewportSize({width:1536,height:1024});
+  await page.goto('http://localhost:5173/web/workspace', {waitUntil:'domcontentloaded'});
+  await page.locator('.wr-date').waitFor();
+  const actualDate = await page.evaluate(() => new Date().toLocaleDateString('ru-RU', {weekday:'long', day:'numeric', month:'long'}));
+  if (await page.locator('.wr-date').textContent() !== actualDate) throw new Error('Live data mode did not activate');
+  await page.locator('.wr-ai-form input').fill('Найди документ');
+  await page.getByRole('button', {name:'Отправить запрос',exact:true}).click();
+  await page.waitForURL('**/alemai?prompt=*');
+  if (new URL(page.url()).searchParams.get('prompt') !== 'Найди документ') throw new Error('AI prompt was not forwarded');
+  await page.locator('textarea:visible').first().waitFor();
+  if (await page.locator('textarea:visible').first().inputValue() !== 'Найди документ') throw new Error('AI composer was not prefilled');
+  await page.goto('http://localhost:5173/web/board', {waitUntil:'domcontentloaded'});
+  await page.locator('.workspace-ref-sidebar').waitFor();
+  if (await page.locator('.wr-topbar').count()) throw new Error('Project top navigation is still visible');
+  if (!await page.getByRole('button', {name:'AI', exact:true}).isVisible()) throw new Error('AI navigation is not in sidebar');
+  if (!await page.getByRole('button', {name:'Messenger', exact:true}).isVisible()) throw new Error('Messenger navigation is not in sidebar');
+  console.log('Interaction checks passed. Page errors:', JSON.stringify(errors));
+  if (errors.length) throw new Error('Browser page errors detected');
+  await browser.close();
+})().catch(e => { console.error(e.message); process.exit(1); });

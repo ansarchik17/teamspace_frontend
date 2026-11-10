@@ -1,0 +1,73 @@
+{
+  "language": {
+    "label": "Тіл",
+    "ru": "Русский",
+    "kk": "Қазақша"
+  },
+  "actions": {
+    "save": "Сақтау",
+    "cancel": "Болдырмау",
+    "close": "Жабу",
+    "delete": "Жою",
+    "edit": "Өңдеу",
+    "create": "Құру",
+    "open": "Ашу",
+    "back": "Артқа",
+    "retry": "Қайталау",
+    "search": "Іздеу",
+    "confirm": "Растау",
+    "download": "Жүктеп алу",
+    "upload": "Жүктеу",
+    "share": "Бөлісу",
+    "more": "Тағы",
+    "reject": "Қабылдамау",
+    "logout": "Шығу",
+    "hide": "Жасыру"
+  },
+  "status": {
+    "loading": "Жүктелуде…",
+    "saving": "Сақталуда…",
+    "empty": "Ештеңе табылмады",
+    "inProgress": "Орындалуда…",
+    "updating": "Жаңартылуда…",
+    "success": "Сәтті"
+  },
+  "time": {
+    "today": "Бүгін",
+    "yesterday": "Кеше"
+  },
+  "count": {
+    "items_one": "{{count}} элемент",
+    "items_other": "{{count}} элемент"
+  },
+  "select": {
+    "placeholder": "Мәнді таңдаңыз",
+    "search": "Іздеу…",
+    "selected": "Таңдалды: {{count}}",
+    "all": "Барлығы",
+    "clearSearch": "Іздеуді тазарту",
+    "expandGroup": "Бөлімшелерді ашу",
+    "collapseGroup": "Бөлімшелерді жию"
+  },
+  "toast": {
+    "close": "Хабарландыруды жабу"
+  },
+  "view": {
+    "label": "Көрініс"
+  },
+  "driveStorage": {
+    "used": "Пайдаланылған: {{used}}",
+    "usedOf": "Пайдаланылған: {{used}} / {{limit}}",
+    "zeroBytes": "0 Б",
+    "fullness": "Сақтау орнының толуы"
+  },
+  "password": {
+    "show": "Құпиясөзді көрсету",
+    "hide": "Құпиясөзді жасыру"
+  },
+  "date": {
+    "any": "Кез келген күн",
+    "clear": "Тазалау",
+    "reset": "Күнді тазалау"
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "aria": "Жұмыс кеңістігі",
+  "userFallback": "Пайдаланушы",
+  "greeting": {
+    "morning": "Қайырлы таң",
+    "afternoon": "Қайырлы күн",
+    "evening": "Қайырлы кеш",
+    "withName": "{{greeting}}, {{name}}",
+    "night": "Қайырлы түн"
+  },
+  "actions": {
+    "label": "Жылдам әрекеттер",
+    "vacation": {
+      "title": "Демалыс",
+      "subtitle": "Өтінім"
+    },
+    "itRequest": {
+      "title": "IT-өтінім",
+      "subtitle": "SenimDesk"
+    },
+    "document": {
+      "title": "Құжат",
+      "subtitle": "ЭҚА-да"
+    },
+    "task": {
+      "title": "Тапсырма",
+      "subtitle": "Командаға"
+    }
+  },
+  "metrics": {
+    "label": "Назар аударуды қажет етеді",
+    "approvals": {
+      "title": "Келісулер",
+      "text": "Сіздің шешіміңізді күтуде",
+      "short": "Келісімдер"
+    },
+    "signing": {
+      "title": "Қол қоюға арналған құжаттар",
+      "text": "Қол қоюға",
+      "short": "Қол қоюға"
+    },
+    "requests": {
+      "title": "Өтінімдер",
+      "text": "Жаңа өтінім",
+      "short": "Өтінімдер"
+    },
+    "noOdoData": "ЭҚА деректері жоқ",
+    "loading": "ЭҚА деректері жүктелуде…",
+    "noAccess": "ЭҚА деректеріне қолжетімділік жоқ",
+    "noSdData": "SenimDesk деректері жоқ",
+    "sdLoading": "SenimDesk өтінімдері жүктелуде…",
+    "noSdAccess": "SenimDesk өтінімдеріне қолжетімділік жоқ"
+  },
+  "tasks": {
+    "title": "Менің тапсырмаларым",
+    "openAll": "Барлығын ашу",
+    "create": "Құру",
+    "filterLabel": "Тапсырмалар фильтрі",
+    "tabs": {
+      "all": "Барлығы",
+      "today": "Бүгін",
+      "week": "Осы аптада",
+      "overdue": "Мерзімі өткен"
+    },
+    "loading": "Тапсырмалар жүктелуде…",
+    "empty": {
+      "all": "Әзірге тапсырма жоқ",
+      "today": "Бүгінге тапсырма жоқ",
+      "week": "Осы аптада тапсырма жоқ",
+      "overdue": "Мерзімі өткен тапсырма жоқ"
+    },
+    "emptyHint": "Ең маңыздысына көңіл бөлуге болады.",
+    "deadline": {
+      "overdue": "Мерзімі өтті",
+      "soon": "Мерзімі жақын",
+      "today": "Бүгін"
+    },
+    "noDue": "Мерзімсіз",
+    "open": "Тапсырманы ашу: {{title}}",
+    "priorityTitle": "Басымдық: {{label}}",
+    "priority": {
+      "critical": "Шұғыл",
+      "high": "Жоғары",
+      "medium": "Орташа",
+      "low": "Төмен"
+    },
+    "when": {
+      "yesterday": "Кеше",
+      "daysAgo_one": "{{count}} күн бұрын",
+      "daysAgo_other": "{{count}} күн бұрын",
+      "today": "Бүгін",
+      "todayAt": "Бүгін, {{time}}",
+      "tomorrow": "Ертең",
+      "tomorrowAt": "Ертең, {{time}}"
+    },
+    "pager": {
+      "label": "Тапсырмалар беттері",
+      "status": "{{total}} ішінен {{page}}",
+      "prev": "Алдыңғы тапсырмалар",
+      "next": "Келесі тапсырмалар"
+    },
+    "columns": {
+      "title": "Атауы",
+      "board": "Тақта",
+      "due": "Мерзімі",
+      "status": "Мәртебесі"
+    }
+  },
+  "news": {
+    "title": "Компания жаңалықтары",
+    "seeAll": "Барлығын көру",
+    "categoriesLabel": "Жаңалық санаттары",
+    "tabs": {
+      "all": "Барлығы",
+      "products": "Өнімдер",
+      "team": "Команда",
+      "events": "Іс-шаралар"
+    },
+    "emptyTitle": "Әзірге жаңалық жоқ",
+    "emptyHint": "Мұнда компанияның жаңалықтары, хабарландырулары және маңызды оқиғалары көрсетіледі.",
+    "noDetails": "Толық ақпарат жоқ."
+  },
+  "calendar": {
+    "title": "Менің күнтізбем",
+    "open": "Ашу",
+    "goToday": "Бүгінгі күнге өту",
+    "prevMonth": "Алдыңғы ай",
+    "nextMonth": "Келесі ай",
+    "todayWithDate": "Бүгін, {{date}}",
+    "online": "Онлайн",
+    "meeting": "Кездесу",
+    "join": "Қосылу",
+    "emptyToday": "Бүгінге оқиға жоқ",
+    "emptyDay": "Бұл күні оқиға жоқ",
+    "weekdays": {
+      "mon": "Дс",
+      "tue": "Сс",
+      "wed": "Ср",
+      "thu": "Бс",
+      "fri": "Жм",
+      "sat": "Сб",
+      "sun": "Жс"
+    },
+    "today": "Бүгін",
+    "enter": "Кіру",
+    "prevWeek": "Алдыңғы апта",
+    "nextWeek": "Келесі апта"
+  },
+  "ai": {
+    "subtitle": "Бүгін немен көмектесе аламын?",
+    "prompts": {
+      "findDocument": "Құжат табу",
+      "meetingSummary": "Кездесу қорытындысын шығару",
+      "draftEmail": "Хат дайындау"
+    },
+    "inputLabel": "Workspace AI сұрауы",
+    "placeholder": "AI-дан сұраңыз...",
+    "submit": "Сұрауды жіберу",
+    "typing": {
+      "first": "Құжатты тап",
+      "second": "Кездесу қорытындысын шығар",
+      "third": "Хат дайында",
+      "fourth": "Бүгін менің қандай тапсырмаларым бар?"
+    }
+  },
+  "services": {
+    "title": "Менің сервистерім",
+    "configure": "Баптау",
+    "edo": "ЭҚА"
+  },
+  "announcements": {
+    "title": "Маңызды хабарландырулар",
+    "all": "Барлығы",
+    "empty": "Маңызды хабарландырулар жоқ",
+    "urgent": "Шұғыл",
+    "important": "Маңызды",
+    "acknowledge": "Танысу қажет"
+  },
+  "board": {
+    "sprint": "Спринт 14",
+    "backlog": "Бэклог",
+    "inProgress": "Жұмыста",
+    "review": "Ревью",
+    "report": "Тоқсандық есеп",
+    "onboarding": "Онбординг",
+    "api": "Төлем API",
+    "landing": "Лендинг v2",
+    "design": "Дизайн-ревью",
+    "high": "Жоғары",
+    "dateFirst": "12 қар.",
+    "dateSecond": "14 қар."
+  }
+}

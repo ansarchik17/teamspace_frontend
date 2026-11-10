@@ -1,0 +1,133 @@
+{
+  "name": "whiteboard",
+  "networks": {
+    "shared": {
+      "external": true,
+      "name": "shared_infra"
+    },
+    "whiteboard": {
+      "name": "whiteboard_internal"
+    },
+    "workspace": {
+      "external": true,
+      "name": "workspace_workspace"
+    }
+  },
+  "services": {
+    "backend": {
+      "container_name": "whiteboard-backend",
+      "depends_on": {
+        "keycloak": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "environment": {
+        "AUTH_DB_PATH": "/app/data/users.db",
+        "KEYCLOAK_CLIENT_ID": "whiteboard-frontend",
+        "KEYCLOAK_GITHUB_ENABLED": "false",
+        "KEYCLOAK_GOOGLE_ENABLED": "false",
+        "KEYCLOAK_INTERNAL_URL": "http://keycloak:8080",
+        "KEYCLOAK_PUBLIC_URL": "${WHITEBOARD_KEYCLOAK_PUBLIC_URL}",
+        "KEYCLOAK_REALM": "whiteboard",
+        "MINIO_ACCESS_KEY": "${SHARED_S3_ACCESS_KEY:?SHARED_S3_ACCESS_KEY required}",
+        "MINIO_BUCKET": "whiteboards",
+        "MINIO_ENDPOINT": "http://shared-minio:9000",
+        "MINIO_SECRET_KEY": "${SHARED_S3_SECRET_KEY:?SHARED_S3_SECRET_KEY required}",
+        "PUBLIC_APP_HOSTNAME": "teamspace.kz",
+        "PUBLIC_APP_URL": "${WHITEBOARD_PUBLIC_APP_URL}"
+      },
+      "image": "${WHITEBOARD_BACKEND_IMAGE_REF}",
+      "networks": {
+        "shared": null,
+        "whiteboard": null
+      },
+      "restart": "unless-stopped",
+      "volumes": [
+        {
+          "source": "whiteboard_auth_data",
+          "target": "/app/data",
+          "type": "volume",
+          "volume": {}
+        }
+      ]
+    },
+    "frontend": {
+      "container_name": "whiteboard-frontend",
+      "depends_on": {
+        "backend": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "image": "${WHITEBOARD_FRONTEND_IMAGE_REF}",
+      "networks": {
+        "whiteboard": null,
+        "workspace": null
+      },
+      "ports": [
+        {
+          "host_ip": "127.0.0.1",
+          "mode": "ingress",
+          "protocol": "tcp",
+          "published": "15173",
+          "target": 80
+        }
+      ],
+      "restart": "unless-stopped"
+    },
+    "keycloak": {
+      "image": "${WHITEBOARD_FRONTEND_IMAGE_REF}",
+      "container_name": "whiteboard-keycloak-proxy",
+      "entrypoint": [
+        "nginx",
+        "-g",
+        "daemon off;"
+      ],
+      "user": "101:101",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "mem_limit": "48m",
+      "memswap_limit": "64m",
+      "cpus": 0.25,
+      "pids_limit": 64,
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=8m,mode=1777"
+      ],
+      "volumes": [
+        "./keycloak/shared-proxy.conf:/etc/nginx/nginx.conf:ro"
+      ],
+      "networks": {
+        "whiteboard": {
+          "aliases": [
+            "whiteboard-keycloak"
+          ]
+        },
+        "workspace": null
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:8080/realms/whiteboard/.well-known/openid-configuration"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "start_period": "10s",
+        "retries": 4
+      },
+      "restart": "unless-stopped"
+    }
+  },
+  "volumes": {
+    "whiteboard_auth_data": null
+  }
+}

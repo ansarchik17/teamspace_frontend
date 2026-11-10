@@ -1,0 +1,82 @@
+name: whiteboard
+
+services:
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: whiteboard-minio
+    environment:
+      MINIO_ROOT_USER: ${WHITEBOARD_MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${WHITEBOARD_MINIO_ROOT_PASSWORD}
+    volumes:
+      - whiteboard_minio_data:/data
+    command: server /data
+    networks: [whiteboard]
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    container_name: whiteboard-keycloak
+    user: "0"
+    mem_limit: 768m
+    memswap_limit: 1g
+    environment:
+      # This small realm must not size its heap from all RAM on the shared VPS.
+      JAVA_OPTS_KC_HEAP: -Xms64m -Xmx256m
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${WHITEBOARD_KEYCLOAK_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${WHITEBOARD_KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+    volumes:
+      - whiteboard_keycloak_data:/opt/keycloak/data
+      - ./keycloak/whiteboard-realm.json:/opt/keycloak/data/import/whiteboard-realm.json:ro
+    command: start-dev --import-realm
+    networks: [whiteboard]
+    restart: unless-stopped
+
+  backend:
+    image: ${WHITEBOARD_BACKEND_IMAGE_REF}
+    container_name: whiteboard-backend
+    environment:
+      AUTH_DB_PATH: /app/data/users.db
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${WHITEBOARD_MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${WHITEBOARD_MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: whiteboards
+      PUBLIC_APP_URL: ${WHITEBOARD_PUBLIC_APP_URL}
+      PUBLIC_APP_HOSTNAME: teamspace.kz
+      KEYCLOAK_PUBLIC_URL: ${WHITEBOARD_KEYCLOAK_PUBLIC_URL}
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_REALM: whiteboard
+      KEYCLOAK_CLIENT_ID: whiteboard-frontend
+      KEYCLOAK_GOOGLE_ENABLED: "false"
+      KEYCLOAK_GITHUB_ENABLED: "false"
+    volumes:
+      - whiteboard_auth_data:/app/data
+    depends_on:
+      - minio
+      - keycloak
+    networks: [whiteboard]
+    restart: unless-stopped
+
+  frontend:
+    image: ${WHITEBOARD_FRONTEND_IMAGE_REF}
+    container_name: whiteboard-frontend
+    ports:
+      - "127.0.0.1:15173:80"
+    depends_on:
+      - backend
+    networks: [whiteboard, workspace]
+    restart: unless-stopped
+
+volumes:
+  whiteboard_auth_data:
+  whiteboard_keycloak_data:
+  whiteboard_minio_data:
+
+networks:
+  whiteboard:
+    name: whiteboard_internal
+  workspace:
+    external: true
+    name: workspace_workspace

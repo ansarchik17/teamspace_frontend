@@ -1,0 +1,25 @@
+{
+  "source": "User-provided output of the isolated production-host benchmark on 2026-10-20",
+  "model": "openai/gpt-oss-120b",
+  "policy": "credits-v1",
+  "scope": "Synthetic Russian prompts; no application tools, autotitles, OCR or upload",
+  "document_words": 3015,
+  "unknown_calls": 0,
+  "total_microcredits": 64674000,
+  "token_pair_order": ["input", "output"],
+  "short_chat": [
+    [[89, 260]],
+    [[89, 272]],
+    [[89, 237]]
+  ],
+  "long_dialogue": [
+    [[92, 412], [464, 520], [948, 441], [1389, 436], [1825, 893]],
+    [[92, 468], [497, 462], [940, 393], [1333, 421], [1753, 879]],
+    [[92, 454], [481, 492], [965, 506], [1462, 413], [1875, 846]]
+  ],
+  "document_text": [
+    [[6258, 549]],
+    [[6258, 564]],
+    [[6258, 557]]
+  ]
+}

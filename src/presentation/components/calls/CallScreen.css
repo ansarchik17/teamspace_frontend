@@ -1,0 +1,175 @@
+.call-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 64px minmax(0, 1fr) 82px;
+  overflow: hidden;
+  color: #f4f6fa;
+  background: #11161d;
+  font-family: Inter, system-ui, sans-serif;
+}
+.call-stage--panel { grid-template-columns: minmax(0, 1fr) minmax(320px, 360px); }
+.call-stage__video { grid-column: 1; grid-row: 2; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.call-stage > aside, .call-stage > .call-chat-panel { grid-column: 2; grid-row: 2; min-width: 0; min-height: 0; }
+.call-mini-window {
+  width: min(380px, calc(100vw - 24px));
+  height: min(260px, calc(100vh - 24px));
+  min-width: min(280px, calc(100vw - 24px));
+  min-height: min(180px, calc(100vh - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  box-sizing: border-box;
+  resize: both;
+  overflow: hidden;
+}
+.call-mini-window .call-topbar--compact { z-index: 20; cursor: grab; user-select: none; touch-action: none; }
+.call-mini-window .call-topbar--compact:active { cursor: grabbing; }
+.call-topbar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
+  padding: 0 20px;
+  background: linear-gradient(120deg, #171c23, #10141a);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.call-topbar__identity, .call-topbar__actions { display: flex; align-items: center; min-width: 0; gap: 14px; }
+.call-topbar__actions { flex-shrink: 0; gap: 8px; }
+.call-topbar__mark {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 36px;
+  display: inline-block;
+  overflow: hidden;
+}
+.call-topbar__mark img { position: relative; width: 100%; height: 100%; object-fit: contain; }
+.call-topbar__brand { flex-shrink: 0; font-size: 17px; font-weight: 700; letter-spacing: -.02em; }
+.call-topbar__divider { width: 1px; height: 24px; margin: 0 5px; background: rgba(255,255,255,.22); }
+.call-topbar__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; color: #e7ebf3; }
+.call-topbar__lock { flex-shrink: 0; color: #b5bfcc; }
+.call-topbar__action {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 9px;
+  background: #20262e;
+  color: #e5eaf1;
+  cursor: pointer;
+}
+.call-topbar__action:hover { background: #303944; }
+.call-toolbar {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  z-index: 35;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto minmax(200px, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px;
+  background: linear-gradient(120deg, #171c23, #10141a);
+  border-top: 1px solid rgba(255,255,255,.09);
+}
+.call-toolbar__meta, .call-toolbar__main, .call-toolbar__end { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.call-toolbar__meta { gap: 12px; white-space: nowrap; color: #b9c2cf; font-size: 12px; }
+.call-toolbar__meta strong { font-size: 15px; color: #f4f6fa; }
+.call-toolbar__main { justify-content: center; }
+.call-toolbar__end { justify-content: flex-end; }
+.call-toolbar__separator, .call-toolbar__divider { width: 1px; height: 22px; flex: none; background: rgba(255,255,255,.18); }
+.call-toolbar__divider { height: 34px; margin: 0 5px; }
+.call-toolbar__signal { display: inline-flex; align-items: center; gap: 7px; }
+.call-toolbar__signal i { width: 8px; height: 8px; border-radius: 50%; background: #9aa0a6; flex: none; }
+.call-toolbar__signal--connected i { background: #34a853; }
+.call-toolbar__signal--waiting i, .call-toolbar__signal--connecting i { background: #f9ab00; }
+.call-toolbar__signal--reconnecting i { background: #4285f4; }
+.call-toolbar__signal--error i { background: #ea4335; }
+.call-control {
+  min-width: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c9d0db;
+  cursor: pointer;
+  font: inherit;
+}
+.call-control__icon {
+  position: relative;
+  width: 48px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  background: #252c35;
+  color: #e5eaf0;
+  transition: background .15s ease, border-color .15s ease;
+}
+.call-control:hover .call-control__icon { background: #35404c; }
+.call-control__label { font-size: 10px; font-weight: 500; white-space: nowrap; }
+.call-control--active .call-control__icon { border-color: #287fff; background: #173760; color: #61a7ff; }
+.call-control--active .call-control__label { color: #75b2ff; }
+.call-control--muted .call-control__icon { background: #4a2830; color: #ff9c9b; }
+.call-control--danger .call-control__icon { min-width: 60px; background: #ed403b; border-color: #ed403b; color: #fff; }
+.call-control--danger:hover .call-control__icon { background: #d92e2a; }
+.call-control__badge { position: absolute; top: 4px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: #56a0ff; }
+.call-mini-controls { position: absolute; bottom: 8px; left: 50%; z-index: 40; transform: translateX(-50%); display: flex; gap: 5px; padding: 5px; border-radius: 14px; background: rgba(17,22,29,.88); }
+.call-control--compact { min-width: 38px; }
+.call-control--compact .call-control__icon { width: 38px; height: 34px; }
+.call-topbar--compact { position: absolute; inset: 0 0 auto; height: 42px; padding: 0 8px; background: linear-gradient(#141a22, transparent); border: 0; }
+.call-topbar--compact .call-topbar__brand { font-size: 12px; }
+.call-topbar--compact .call-topbar__mark { width: 20px; height: 26px; }
+.call-topbar--compact .call-topbar__mark img { width: 100%; height: 100%; }
+.call-topbar--compact .call-topbar__action { width: 28px; height: 28px; }
+.call-chat-panel { width: 100% !important; box-sizing: border-box; }
+.call-panel-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #aeb7c4;
+  white-space: nowrap;
+  font: 500 12px Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+.call-panel-tab:hover { color: #fff; }
+.call-panel-tab--active { border-bottom-color: #398dff; color: #fff; }
+.call-panel-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 3px; border-radius: 9px; background: #303946; color: #cbd5e1; font-size: 10px; }
+@media (max-width: 1180px) {
+  .call-toolbar { grid-template-columns: 1fr auto; }
+  .call-toolbar__meta { display: none; }
+  .call-toolbar__main { justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .call-stage { grid-template-rows: 56px minmax(0, 1fr) 74px; }
+  .call-stage--panel { grid-template-columns: minmax(0, 1fr); }
+  .call-stage > aside, .call-stage > .call-chat-panel { grid-column: 1; z-index: 25; width: min(100%, 360px) !important; justify-self: end; }
+  .call-topbar { padding: 0 10px; }
+  .call-topbar__brand { font-size: 14px; }
+  .call-topbar__divider, .call-topbar__lock { display: none; }
+  .call-topbar__title { max-width: 25vw; font-size: 12px; }
+  .call-toolbar { gap: 4px; padding: 5px 7px; overflow-x: auto; }
+  .call-toolbar__main, .call-toolbar__end { gap: 3px; }
+  .call-toolbar__divider { margin: 0 1px; }
+  .call-control { min-width: 40px; }
+  .call-control__icon { width: 38px; height: 38px; }
+  .call-control__label { font-size: 9px; }
+  .call-video-grid:not([data-count="1"]) { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+}

@@ -1,0 +1,39 @@
+name: axis-mail-app
+services:
+  app:
+    image: ${MAIL_APP_IMAGE:-axis-mail-app:local}
+    build: .
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgres://axis:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/axis_mail
+      MAIL_CREDENTIAL_KEY: ${MAIL_CREDENTIAL_KEY:?Set MAIL_CREDENTIAL_KEY}
+    ports:
+      - "127.0.0.1:14100:4100"
+    volumes:
+      - ./secrets:/run/secrets:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [default, workspace]
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: axis_mail
+      POSTGRES_USER: axis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - app_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axis -d axis_mail"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  app_pg:
+networks:
+  default:
+  workspace:
+    external: true
+    name: workspace_workspace

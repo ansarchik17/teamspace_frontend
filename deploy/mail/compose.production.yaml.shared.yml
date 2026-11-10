@@ -1,0 +1,37 @@
+{
+  "name": "axis-mail-app",
+  "services": {
+    "app": {
+      "image": "${MAIL_APP_IMAGE:-axis-mail-app:local}",
+      "build": ".",
+      "restart": "unless-stopped",
+      "env_file": ".env.production",
+      "environment": {
+        "DATABASE_URL": "postgres://${SHARED_DB_USER:?SHARED_DB_USER required}:${SHARED_DB_PASSWORD:?SHARED_DB_PASSWORD required}@shared-postgres:5432/axis_mail?sslmode=disable",
+        "MAIL_CREDENTIAL_KEY": "${MAIL_CREDENTIAL_KEY:?Set MAIL_CREDENTIAL_KEY}"
+      },
+      "ports": [
+        "127.0.0.1:14100:4100"
+      ],
+      "volumes": [
+        "./secrets:/run/secrets:ro"
+      ],
+      "networks": [
+        "default",
+        "workspace",
+        "shared"
+      ]
+    }
+  },
+  "networks": {
+    "default": null,
+    "workspace": {
+      "external": true,
+      "name": "workspace_workspace"
+    },
+    "shared": {
+      "external": true,
+      "name": "shared_infra"
+    }
+  }
+}

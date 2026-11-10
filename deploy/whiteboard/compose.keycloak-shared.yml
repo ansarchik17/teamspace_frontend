@@ -1,0 +1,154 @@
+{
+  "name": "whiteboard",
+  "networks": {
+    "whiteboard": {
+      "name": "whiteboard_internal"
+    },
+    "workspace": {
+      "external": true,
+      "name": "workspace_workspace"
+    }
+  },
+  "services": {
+    "backend": {
+      "container_name": "whiteboard-backend",
+      "depends_on": {
+        "keycloak": {
+          "condition": "service_started",
+          "required": true
+        },
+        "minio": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "environment": {
+        "AUTH_DB_PATH": "/app/data/users.db",
+        "KEYCLOAK_CLIENT_ID": "whiteboard-frontend",
+        "KEYCLOAK_GITHUB_ENABLED": "false",
+        "KEYCLOAK_GOOGLE_ENABLED": "false",
+        "KEYCLOAK_INTERNAL_URL": "http://keycloak:8080",
+        "KEYCLOAK_PUBLIC_URL": "${WHITEBOARD_KEYCLOAK_PUBLIC_URL}",
+        "KEYCLOAK_REALM": "whiteboard",
+        "MINIO_ACCESS_KEY": "${WHITEBOARD_MINIO_ROOT_USER}",
+        "MINIO_BUCKET": "whiteboards",
+        "MINIO_ENDPOINT": "http://minio:9000",
+        "MINIO_SECRET_KEY": "${WHITEBOARD_MINIO_ROOT_PASSWORD}",
+        "PUBLIC_APP_HOSTNAME": "teamspace.kz",
+        "PUBLIC_APP_URL": "${WHITEBOARD_PUBLIC_APP_URL}"
+      },
+      "image": "${WHITEBOARD_BACKEND_IMAGE_REF}",
+      "networks": {
+        "whiteboard": null
+      },
+      "restart": "unless-stopped",
+      "volumes": [
+        {
+          "source": "whiteboard_auth_data",
+          "target": "/app/data",
+          "type": "volume",
+          "volume": {}
+        }
+      ]
+    },
+    "frontend": {
+      "container_name": "whiteboard-frontend",
+      "depends_on": {
+        "backend": {
+          "condition": "service_started",
+          "required": true
+        }
+      },
+      "image": "${WHITEBOARD_FRONTEND_IMAGE_REF}",
+      "networks": {
+        "whiteboard": null,
+        "workspace": null
+      },
+      "ports": [
+        {
+          "host_ip": "127.0.0.1",
+          "mode": "ingress",
+          "protocol": "tcp",
+          "published": "15173",
+          "target": 80
+        }
+      ],
+      "restart": "unless-stopped"
+    },
+    "keycloak": {
+      "image": "${WHITEBOARD_FRONTEND_IMAGE_REF}",
+      "container_name": "whiteboard-keycloak-proxy",
+      "entrypoint": [
+        "nginx",
+        "-g",
+        "daemon off;"
+      ],
+      "user": "101:101",
+      "read_only": true,
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "mem_limit": "48m",
+      "memswap_limit": "64m",
+      "cpus": 0.25,
+      "pids_limit": 64,
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=8m,mode=1777"
+      ],
+      "volumes": [
+        "./keycloak/shared-proxy.conf:/etc/nginx/nginx.conf:ro"
+      ],
+      "networks": {
+        "whiteboard": {
+          "aliases": [
+            "whiteboard-keycloak"
+          ]
+        },
+        "workspace": null
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "-O",
+          "/dev/null",
+          "http://127.0.0.1:8080/realms/whiteboard/.well-known/openid-configuration"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "start_period": "10s",
+        "retries": 4
+      },
+      "restart": "unless-stopped"
+    },
+    "minio": {
+      "command": "server /data",
+      "container_name": "whiteboard-minio",
+      "environment": {
+        "MINIO_ROOT_PASSWORD": "${WHITEBOARD_MINIO_ROOT_PASSWORD}",
+        "MINIO_ROOT_USER": "${WHITEBOARD_MINIO_ROOT_USER}"
+      },
+      "image": "quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z",
+      "networks": {
+        "whiteboard": null
+      },
+      "restart": "unless-stopped",
+      "volumes": [
+        {
+          "source": "whiteboard_minio_data",
+          "target": "/data",
+          "type": "volume",
+          "volume": {}
+        }
+      ]
+    }
+  },
+  "volumes": {
+    "whiteboard_auth_data": null,
+    "whiteboard_minio_data": null
+  }
+}

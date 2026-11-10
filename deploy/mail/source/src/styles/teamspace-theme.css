@@ -1,0 +1,58 @@
+@import './teamspace-tokens.css';
+@import './teamspace-fonts.css';
+/* Adapter for independently built TeamSpace applications. */
+:root { --font-sans: var(--ts-font); }
+body { font-family: var(--ts-font); color: var(--ts-text); background: var(--ts-bg); }
+button,input,textarea,select { font-family: inherit; }
+:where(button,a,input,textarea,select,summary,[tabindex]):focus-visible { outline: 2px solid var(--ts-action); outline-offset: 3px; }
+input[type=checkbox],input[type=radio] { accent-color: var(--ts-action); }
+
+:root { font-family:var(--ts-font); --primary:var(--ts-action); --ink:var(--ts-text); --muted:var(--ts-text-secondary); --border:var(--ts-border); --sidebar:var(--ts-surface-muted); }
+.sidebar { background:white; border-right:1px solid var(--ts-border); }
+.topbar { background:white; border-bottom:1px solid var(--ts-border); }
+h1 { font:600 28px/36px var(--ts-font); letter-spacing:-.035em; }
+.primary,.secondary { height:40px; padding:0 16px; border-radius:var(--ts-radius-control); font:500 14px/20px var(--ts-font); box-shadow:none; }
+.primary { background:var(--ts-action); color:white; }
+.primary:hover { background:var(--ts-action-hover); }
+.secondary { background:white; border:1px solid var(--ts-border); color:var(--ts-text); }
+input,select,textarea { border-radius:var(--ts-radius-control); }
+.modal { border-radius:var(--ts-radius-dialog); border-color:var(--ts-border); box-shadow:var(--ts-shadow-dialog); }
+.modal > header { padding:20px 24px; background:white; }
+.modal > header h2 { font:600 18px/26px var(--ts-font); }
+.modal > footer { background:var(--ts-surface-muted); border-top:1px solid var(--ts-border); padding:16px 24px; }
+.mail-workspace { border-radius:var(--ts-radius-panel); border:1px solid var(--ts-border); }
+.mail-page-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:24px; flex-shrink:0; border-bottom:1px solid var(--ts-border); }
+.mail-page-heading h1,.page-heading h1 { margin:0; font:600 28px/36px var(--ts-font); letter-spacing:-.035em; }
+.mail-page-heading p,.page-heading p { margin:6px 0 0; font:400 14px/20px var(--ts-font); color:var(--ts-text-secondary); }
+.mail-page-heading .primary { display:flex; align-items:center; justify-content:center; gap:8px; flex-shrink:0; }
+.sidebar .compose-button { min-height:40px; height:40px; padding:0 16px; margin:12px; gap:8px; border-radius:var(--ts-radius-control); background:var(--ts-action); color:white; box-shadow:none; }
+.sidebar .compose-button:hover { background:var(--ts-action-hover); box-shadow:none; }
+.sidebar nav { gap:4px; }
+.sidebar nav button { height:40px; border-radius:var(--ts-radius-control); margin:0 12px; padding:0 12px; font-weight:500; }
+.sidebar nav button.active { background:var(--ts-selection); color:var(--ts-action); }
+.sidebar-collapsed .sidebar .compose-button { width:40px; padding:0; justify-content:center; }
+.sidebar-collapsed .sidebar nav button { margin:0 auto; padding:10px; }
+.compose-dock .modal { border-radius:var(--ts-radius-dialog) var(--ts-radius-dialog) 0 0; box-shadow:var(--ts-shadow-dialog); }
+.compose-dock .modal:not(.minimized) > header { min-height:64px; padding:16px 20px; background:var(--ts-surface-muted); }
+.compose-dock .modal:not(.minimized) > header h2 { font:600 18px/26px var(--ts-font); }
+.compose footer { border-top:1px solid var(--ts-border); padding:16px 20px; }
+.compose footer .primary,.calendar-page .primary,.calendar-page .secondary { height:40px; border-radius:var(--ts-radius-control); padding:0 16px; font:500 14px/20px var(--ts-font); }
+.calendar-page .primary { background:var(--ts-action); color:white; }
+@media (max-width:640px) {
+  .mail-page-heading { padding:16px; align-items:flex-start; flex-wrap:wrap; }
+  .mail-page-heading h1 { font-size:24px; line-height:32px; }
+  .sidebar-collapsed .sidebar .compose-button { width:auto; padding:0 16px; }
+  .sidebar-collapsed .sidebar nav button { margin:0 12px; padding:0 12px; width:auto; }
+}
+
+/* Short wordmark stays within the sidebar instead of flowing into search. */
+.brand-row .brand { min-width:0; gap:8px; color:var(--ts-text); font:600 24px/32px var(--ts-font); letter-spacing:-.04em; }
+.brand-row .brand-symbol { width:28px; height:28px; }
+.brand-row .brand-symbol svg { width:28px; height:28px; }
+.brand-row .brand-name { overflow:hidden; text-overflow:ellipsis; }
+.brand-row > .icon-button { flex-shrink:0; }
+.topbar { min-width:0; padding:0 24px; gap:16px; }
+.global-search { min-width:0; height:40px; max-width:640px; border:1px solid var(--ts-border); border-radius:8px; background:var(--ts-bg); gap:12px; }
+.global-search input { font:400 14px/20px var(--ts-font); }
+.topbar-actions { min-width:0; }
+@media (max-width:640px) { .topbar { padding:0 16px; gap:8px; } }

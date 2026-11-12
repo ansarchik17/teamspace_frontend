@@ -21,7 +21,7 @@
       '<div class="axis-splash__identity">' +
         '<div class="axis-splash__emblem">' +
           '<canvas class="axis-splash__particles" aria-hidden="true"></canvas>' +
-          '<img class="axis-splash__mark" src="' + base + 'axis-splash-mark.svg" alt="" draggable="false">' +
+          '<img class="axis-splash__mark" src="' + base + 'unitespace-mark.svg" alt="" draggable="false">' +
         '</div>' +
         '<div class="axis-splash__word"><img src="' + base + 'axis-splash-word.svg" alt="UniteSpace" draggable="false"></div>' +
         '<p class="axis-splash__status">' + (label || '') + '</p>' +
@@ -127,7 +127,7 @@
       }
       raf = requestAnimationFrame(frame);
     };
-    img.src = base + 'axis-splash-mark.svg';
+    img.src = base + 'unitespace-mark.svg';
   }
 
   function show(label) {

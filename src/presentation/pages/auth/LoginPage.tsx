@@ -183,7 +183,7 @@ export default function LoginPage() {
     <main className="axis-login-page">
       <div className="axis-login-shell">
         <aside className="axis-login-hero">
-          <div className="axis-login-brand is-inverse">UniteSpace</div>
+          <div className="axis-login-brand is-inverse"><img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" />UniteSpace</div>
           <div className="axis-login-hero-copy">
             <h2>{t('hero.title')}<br />{t('hero.titleSecond')}</h2>
             <p>{t('hero.subtitle')}</p>
@@ -219,7 +219,7 @@ export default function LoginPage() {
 
         <section className="axis-login-panel">
           <header className="axis-login-topbar">
-            <div className="axis-login-brand axis-login-mobile-brand">UniteSpace</div>
+            <div className="axis-login-brand axis-login-mobile-brand"><img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" />UniteSpace</div>
             <LanguageSwitcher persist={false} className="axis-login-language" />
           </header>
 

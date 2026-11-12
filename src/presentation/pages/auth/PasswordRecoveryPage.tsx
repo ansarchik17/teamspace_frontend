@@ -52,7 +52,7 @@ export default function PasswordRecoveryPage() {
   }
   return <main className="flex min-h-screen items-center justify-center bg-slate-50 p-5">
     <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <div className="mb-6 flex items-center justify-between gap-3"><span className="text-lg font-bold text-slate-900">UniteSpace</span><LanguageSwitcher persist={false} /></div>
+      <div className="mb-6 flex items-center justify-between gap-3"><span className="inline-flex items-center gap-2 text-lg font-bold text-slate-900"><img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" className="h-7 w-7 shrink-0" />UniteSpace</span><LanguageSwitcher persist={false} /></div>
       <h1 className="text-2xl font-semibold text-slate-900">{t('title')}</h1>
       {done ? <p role="status" className="mt-4 text-slate-700">{t(done === 'completed' ? 'completed' : 'requested')}</p> : <>
         <p className="mt-3 text-sm text-slate-600">{t(token ? 'newPasswordDescription' : 'requestDescription')}</p>

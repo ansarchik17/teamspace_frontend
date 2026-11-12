@@ -32,7 +32,7 @@
   background: var(--axis-surface);
 }
 
-/* Hero: the colours and soft folds of the UniteSpace mark. */
+/* Hero: blue and cyan from the UniteSpace identity. */
 .axis-login-hero {
   position: relative;
   z-index: 1;
@@ -84,6 +84,7 @@
 .axis-login-brand {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   width: fit-content;
   font-size: 15px;
   line-height: 20px;
@@ -91,7 +92,9 @@
   letter-spacing: -.01em;
   color: var(--axis-text);
 }
+.axis-login-brand img { width: 28px; height: 28px; flex: none; }
 .axis-login-brand.is-inverse { color: #fff; }
+.axis-login-brand.is-inverse img { filter: brightness(0) invert(1); }
 .axis-login-hero-copy { margin-top: 48px; }
 .axis-login-hero-copy h2 {
   max-width: 560px;

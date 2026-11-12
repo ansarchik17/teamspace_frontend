@@ -56,7 +56,7 @@ export default function CallHeader({
       onPointerCancel={isMinimized ? onDragEnd : undefined}
     >
       <div className="call-topbar__identity">
-        <span className="call-topbar__mark" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}axis-workspace-mark.png`} alt="" /></span>
+        <span className="call-topbar__mark" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" /></span>
         <span className="call-topbar__brand">Видеозвонок</span>
         {!isMinimized ? (
           <>

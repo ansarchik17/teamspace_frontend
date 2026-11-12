@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="UniteSpace">
+  <rect width="64" height="64" rx="14" fill="#2458D3"/>
+  <g transform="translate(7 7) scale(.78125)">
+    <path fill="#FFF" d="M6 6h16v26a10 10 0 0 0 20 0V6h16v26a26 26 0 0 1-52 0Z"/>
+    <path fill="#06C9DD" d="M42 6h16v26a26 26 0 0 1-26 26c-3.2 0-6.27-.58-9.11-1.64l15.32-16.52A9.98 9.98 0 0 0 42 32Z"/>
+  </g>
+</svg>

@@ -60,16 +60,13 @@ export default function WorkspaceSidebar({
           style={{
             width: 34,
             height: 34,
-            borderRadius: 10,
             flexShrink: 0,
-            background: `linear-gradient(145deg, ${C.blue} 0%, ${C.blueDark} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: `0 4px 14px ${C.blueGlow}`,
           }}
         >
-          <MaterialSymbol name="hub" size={18} color="#fff" />
+          <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" style={{ width: 34, height: 34 }} />
         </div>
         {!collapsed ? (
           <div>

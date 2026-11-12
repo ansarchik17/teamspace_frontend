@@ -1354,7 +1354,7 @@ function MailView({
                   <Sparkles size={19} />
                 </span>
                 <div>
-                  <strong>Помощник TeamSpace</strong>
+                  <strong>Помощник UniteSpace</strong>
                   <p>
                     {!session.tenant.ai_enabled
                       ? "AI отключён для вашей компании"

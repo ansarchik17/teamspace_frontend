@@ -73,7 +73,7 @@ export default function WorkspaceSidebar({
         </div>
         {!collapsed ? (
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>TEAM</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>UniteSpace</div>
             <div
               style={{
                 fontSize: 9,

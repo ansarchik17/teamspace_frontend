@@ -525,7 +525,7 @@ export default function WorkspaceTopNav({
           >
             <img src={`${import.meta.env.BASE_URL}axis-workspace-mark.png`} alt="" className="hidden h-9 w-9 shrink-0 object-contain sm:inline lg:h-10 lg:w-10" />
             <span className="hidden whitespace-nowrap text-[15px] tracking-[-0.05em] text-[#1A1F36] sm:inline lg:text-[16px]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              <span className="font-bold">Team</span><span className="font-light">Space</span>
+              <span className="font-bold">Unite</span><span className="font-light">Space</span>
             </span>
           </div> : null}
         </div>

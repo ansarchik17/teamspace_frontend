@@ -147,14 +147,14 @@ function GuestLobby({
         <Link
           to={`/meet/${encodeURIComponent(meetingId)}`}
           className="meet-guest-brand"
-          aria-label="TeamSpace Meet"
+          aria-label="UniteSpace Meet"
         >
           <img
             src={`${import.meta.env.BASE_URL}axis-workspace-mark.png`}
             alt=""
           />
           <span>
-            TeamSpace <span>Meet</span>
+            UniteSpace <span>Meet</span>
           </span>
         </Link>
         {!activeCall && (

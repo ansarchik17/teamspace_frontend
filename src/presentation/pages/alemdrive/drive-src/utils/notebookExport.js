@@ -117,7 +117,7 @@ export function stripMarkdownForPptx(md) {
 export async function buildPresentationPptxBlob(slides, filename, themeId) {
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
-    pptx.author = 'TeamSpace';
+    pptx.author = 'UniteSpace';
     pptx.title = slides?.[0]?.title || 'Deep Research Assistant';
     pptx.subject = filename || 'Презентация';
     const theme = getPresentationTheme(themeId);
@@ -614,7 +614,7 @@ function normalizedToPptxTableRows(normalized) {
 export async function buildChartPptxBlob(normalized) {
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
-    pptx.author = 'TeamSpace';
+    pptx.author = 'UniteSpace';
     pptx.title = 'Deep Research Assistant';
 
     const slide = pptx.addSlide();

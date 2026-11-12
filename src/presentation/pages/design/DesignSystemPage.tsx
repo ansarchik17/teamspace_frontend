@@ -48,7 +48,7 @@ export default function DesignSystemPage() {
     <main className="h-full overflow-y-auto bg-[var(--ts-bg)] px-4 py-8 text-[var(--ts-text)] sm:px-8 lg:px-12">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-8">
         <div>
-          <div className="mb-4 text-xs font-medium uppercase tracking-widest text-[var(--ts-text-secondary)]">TeamSpace / Локальная дизайн-система</div>
+          <div className="mb-4 text-xs font-medium uppercase tracking-widest text-[var(--ts-text-secondary)]">UniteSpace / Локальная дизайн-система</div>
           <PageHeader title="Один стиль. Всё рабочее пространство." description="Общие правила для страниц, действий, форм и модальных окон." actions={<AppButton onClick={() => setModal(true)}><Plus size={18} />Пример диалога</AppButton>} />
         </div>
 

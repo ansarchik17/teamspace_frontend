@@ -181,8 +181,8 @@ export default function WorkspaceAppCard({
 
       {isFeatured ? (
         <div className="relative z-10 mb-4 flex items-center justify-between gap-3">
-          <h3 className="truncate whitespace-nowrap text-[34px] font-bold leading-tight text-white" title="Единое пространство: TeamSpace">
-            Единое пространство: TeamSpace
+          <h3 className="truncate whitespace-nowrap text-[34px] font-bold leading-tight text-white" title="Единое пространство: UniteSpace">
+            Единое пространство: UniteSpace
           </h3>
           <div className="relative">
             <button

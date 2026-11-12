@@ -1,5 +1,5 @@
 /*
- * TeamSpace splash screen.
+ * UniteSpace splash screen.
  *   window.showAxisSplash(label?) — show it (again), e.g. right after sign-in;
  *   window.hideAxisSplash()      — hide once the app is ready; waits until the intro animation has played.
  * The markup for the first paint lives in index.html; later shows rebuild it.
@@ -23,7 +23,7 @@
           '<canvas class="axis-splash__particles" aria-hidden="true"></canvas>' +
           '<img class="axis-splash__mark" src="' + base + 'axis-splash-mark.svg" alt="" draggable="false">' +
         '</div>' +
-        '<div class="axis-splash__word"><img src="' + base + 'axis-splash-word.svg" alt="TeamSpace" draggable="false"></div>' +
+        '<div class="axis-splash__word"><img src="' + base + 'axis-splash-word.svg" alt="UniteSpace" draggable="false"></div>' +
         '<p class="axis-splash__status">' + (label || '') + '</p>' +
         '<div class="axis-splash__loading" aria-hidden="true"></div>' +
       '</div>'
@@ -151,7 +151,7 @@
       root.className = 'axis-splash';
       root.setAttribute('role', 'status');
       root.setAttribute('aria-live', 'polite');
-      root.setAttribute('aria-label', 'Загрузка TeamSpace');
+      root.setAttribute('aria-label', 'Загрузка UniteSpace');
       root.innerHTML = markup(label);
       document.body.appendChild(root);
     }

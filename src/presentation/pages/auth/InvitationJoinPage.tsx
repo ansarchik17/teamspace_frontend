@@ -56,7 +56,7 @@ export default function InvitationJoinPage() {
     if (mounted.current) { forgetInvitation(); setDone(true); window.history.replaceState(window.history.state, '', window.location.pathname) }
   })
   return <main className="invitation-join"><section className="invitation-card" aria-busy={loading}>
-    <span className="invitation-brand">TeamSpace</span>
+    <span className="invitation-brand">UniteSpace</span>
     {loading ? <p role="status">{t('loading')}</p> : done ? <>
       <h1>{activationPending ? t('activationTitle') : identity ? t('joined') : t('registered')}</h1>
       <p>{activationPending ? t('activationDescription') : identity ? t('joinedDescription') : t('registeredDescription')}</p>

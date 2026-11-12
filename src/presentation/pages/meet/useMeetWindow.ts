@@ -121,7 +121,7 @@ export default function useMeetWindow(
         }
         pipRef.current = pip
         copyMeetStyles(document, pip.document, meetingCss)
-        pip.document.title = 'Meet · TeamSpace'
+        pip.document.title = 'Meet · UniteSpace'
         pip.document.body.appendChild(host)
         changeMode('pip')
         setMessage('')

@@ -1,4 +1,4 @@
-# TeamSpace frontend
+# UniteSpace frontend
 
 Корпоративное рабочее пространство на React 19, TypeScript, Vite 8 и Tailwind CSS 4.
 Основной backend расположен в соседнем каталоге `teamspace_backend` и написан на Go.

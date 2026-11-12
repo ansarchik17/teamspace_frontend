@@ -1,5 +1,4 @@
-import { BriefcaseBusiness, CalendarDays, FileText, GraduationCap, House, LayoutGrid, MessageCircle, Newspaper, PanelsTopLeft, Sparkles, SquareCheck, StickyNote, Users, Video, type LucideIcon } from 'lucide-react'
-import { GROWY_HOME_URL } from './growy'
+import { BriefcaseBusiness, CalendarDays, FileText, House, LayoutGrid, MessageCircle, PanelsTopLeft, Sparkles, SquareCheck, StickyNote, Users, type LucideIcon } from 'lucide-react'
 import type shell from '../i18n/locales/ru/shell.json'
 import EdoIcon from '../ui/icons/EdoIcon'
 
@@ -18,14 +17,11 @@ interface WorkspaceNavigationItem {
 /** One navigation model for desktop sidebar and mobile drawer. */
 export const WORKSPACE_NAVIGATION: WorkspaceNavigationItem[] = [
   { id: 'workspace', labelKey: 'navigation.workspace', route: '/workspace', icon: 'home', Icon: House },
-  { id: 'news', labelKey: 'navigation.news', route: '/news', icon: 'feed', Icon: Newspaper },
   { id: 'board', labelKey: 'navigation.board', route: '/board', icon: 'view_kanban', Icon: SquareCheck },
   { id: 'alemdrive', labelKey: 'navigation.alemdrive', route: '/drive', icon: 'folder_open', Icon: FileText },
   { id: 'chat', labelKey: 'navigation.chat', route: '/messenger', icon: 'forum', Icon: MessageCircle },
   { id: 'alem-contact', labelKey: 'navigation.alem-contact', route: '/team-contact', icon: 'contacts', Icon: Users },
-  { id: 'meet', labelKey: 'navigation.meet', route: '/meet', icon: 'videocam', Icon: Video },
   { id: 'crm', labelKey: 'navigation.crm', route: '/crm', icon: 'business_center', Icon: BriefcaseBusiness },
-  { id: 'alem-edu', labelKey: 'navigation.alem-edu', route: GROWY_HOME_URL, icon: 'school', Icon: GraduationCap, isExternal: true },
   { id: 'teamstore', labelKey: 'navigation.teamstore', route: '/teamstore', icon: 'apps', Icon: LayoutGrid },
 ]
 

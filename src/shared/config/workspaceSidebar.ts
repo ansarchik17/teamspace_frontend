@@ -30,7 +30,6 @@ export const WORKSPACE_NAV_GROUPS: WorkspaceNavGroup[] = [
     items: [
       { id: 'home', icon: 'grid_view', label: 'Главная' },
       { id: 'workspace', icon: 'apps', label: 'Workspace' },
-      { id: 'meet', icon: 'videocam', label: 'Meet' },
       { id: 'calendar', icon: 'calendar_month', label: 'Календарь' },
       { id: 'alemstore', icon: 'storefront', label: 'TeamStore' },
       { id: 'profile', icon: 'badge', label: 'Profile' },

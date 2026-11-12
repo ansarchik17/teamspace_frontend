@@ -122,9 +122,6 @@ export default function WorkspaceSidebar({
                     if (item.id === 'workspace') {
                       navigate('/workspace')
                     }
-                    if (item.id === 'meet') {
-                      navigate('/meet')
-                    }
                     if (item.id === 'calendar') {
                       navigate('/calendar')
                     }

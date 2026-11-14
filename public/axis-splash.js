@@ -21,7 +21,7 @@
       '<div class="axis-splash__identity">' +
         '<div class="axis-splash__emblem">' +
           '<canvas class="axis-splash__particles" aria-hidden="true"></canvas>' +
-          '<img class="axis-splash__mark" src="' + base + 'unitespace-mark.svg" alt="" draggable="false">' +
+          '<img class="axis-splash__mark" src="' + base + 'asg-invest-logo.png" alt="ASG Invest" draggable="false">' +
         '</div>' +
         '<div class="axis-splash__word"><img src="' + base + 'axis-splash-word.svg" alt="UniteSpace" draggable="false"></div>' +
         '<p class="axis-splash__status">' + (label || '') + '</p>' +
@@ -55,42 +55,47 @@
     var img = new Image();
     img.onerror = function () { revealRest(root); };
     img.onload = function () {
-      var size = canvas.getBoundingClientRect().width || 184;
+      var bounds = canvas.getBoundingClientRect();
+      var width = bounds.width || 360;
+      var height = bounds.height || 180;
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(size * dpr);
-      canvas.height = Math.round(size * dpr);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       var ctx = canvas.getContext('2d');
       ctx.scale(dpr, dpr);
 
       // Sample the mark's pixels to get the target points for the particles.
       var off = document.createElement('canvas');
       off.width = 160;
-      off.height = 160;
+      off.height = Math.max(1, Math.round(off.width * height / width));
       var oc = off.getContext('2d', { willReadFrequently: true });
-      oc.drawImage(img, 12, 12, 136, 136);
+      var scale = Math.min(off.width / img.naturalWidth, off.height / img.naturalHeight);
+      var imageWidth = img.naturalWidth * scale;
+      var imageHeight = img.naturalHeight * scale;
+      oc.drawImage(img, (off.width - imageWidth) / 2, (off.height - imageHeight) / 2, imageWidth, imageHeight);
       var pix;
       try {
-        pix = oc.getImageData(0, 0, 160, 160).data;
+        pix = oc.getImageData(0, 0, off.width, off.height).data;
       } catch (e) {
         revealRest(root);
         return;
       }
 
       var points = [];
-      for (var y = 22; y < 140; y += 3) {
-        for (var x = 22; x < 140; x += 3) {
-          var i = (y * 160 + x) * 4;
+      for (var y = 0; y < off.height; y += 3) {
+        for (var x = 0; x < off.width; x += 3) {
+          var i = (y * off.width + x) * 4;
           if (pix[i + 3] > 175 && Math.random() < 0.82) {
-            points.push({ tx: x * size / 160, ty: y * size / 160, color: 'rgb(' + pix[i] + ',' + pix[i + 1] + ',' + pix[i + 2] + ')' });
+            points.push({ tx: x * width / off.width, ty: y * height / off.height, color: 'rgb(' + pix[i] + ',' + pix[i + 1] + ',' + pix[i + 2] + ')' });
           }
         }
       }
 
-      var cx = size / 2;
-      var cy = size / 2;
+      var cx = width / 2;
+      var cy = height / 2;
       var parts = points.map(function (p, idx) {
         var a = Math.atan2(p.ty - cy, p.tx - cx);
-        var radius = size * (0.72 + Math.random() * 0.62);
+        var radius = Math.max(width, height) * (0.72 + Math.random() * 0.62);
         var side = idx % 2 ? 1 : -1;
         return {
           tx: p.tx, ty: p.ty, color: p.color,
@@ -104,7 +109,7 @@
       var start = performance.now();
       function frame(now) {
         var t = Math.min((now - start) / 1900, 1);
-        ctx.clearRect(0, 0, size, size);
+        ctx.clearRect(0, 0, width, height);
         for (var k = 0; k < parts.length; k++) {
           var p = parts[k];
           var local = Math.max(0, Math.min(1, (t - p.delay) / (1 - p.delay)));
@@ -121,13 +126,13 @@
         if (t < 1) {
           raf = requestAnimationFrame(frame);
         } else {
-          ctx.clearRect(0, 0, size, size);
+          ctx.clearRect(0, 0, width, height);
           revealRest(root);
         }
       }
       raf = requestAnimationFrame(frame);
     };
-    img.src = base + 'unitespace-mark.svg';
+    img.src = base + 'asg-invest-logo.png';
   }
 
   function show(label) {

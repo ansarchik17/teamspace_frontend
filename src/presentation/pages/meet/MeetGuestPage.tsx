@@ -150,7 +150,7 @@ function GuestLobby({
           aria-label="UniteSpace Meet"
         >
           <img
-            src={`${import.meta.env.BASE_URL}unitespace-mark.svg`}
+            src={`${import.meta.env.BASE_URL}asg-invest-mark.png`}
             alt=""
           />
           <span>

@@ -86,7 +86,7 @@ export function QrLoginPanel({ status, statusMessage, qrValue, error, isBusy, on
                 <div ref={qrHostRef} className="h-[304px] w-[304px]" />
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   <div className="rounded-[22px] bg-white p-2.5 shadow-[0_6px_18px_rgba(10,22,40,0.16)]">
-                    <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="UniteSpace" className="h-12 w-12 object-contain" />
+                    <img src={`${import.meta.env.BASE_URL}asg-invest-mark.png`} alt="UniteSpace" className="h-12 w-12 object-contain" />
                   </div>
                 </div>
               </>

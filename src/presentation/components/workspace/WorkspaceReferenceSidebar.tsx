@@ -54,11 +54,9 @@ export default function WorkspaceReferenceSidebar({
   }
   return <aside id="workspace-sidebar" className="workspace-ref-sidebar" data-collapsed={collapsed}>
     <div className="workspace-ref-sidebar__head">
-      <button type="button" className="workspace-ref-sidebar__brand" onClick={() => navigate('/workspace')} aria-label="UniteSpace">
-        <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" className="workspace-ref-sidebar__mark" />
-        <span className="flex whitespace-nowrap text-[19px] tracking-[-0.055em] text-[#0A1628]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-          <span className="font-bold">Unite</span><span className="font-light">Space</span>
-        </span>
+      <button type="button" className="workspace-ref-sidebar__brand" onClick={() => navigate('/workspace')} aria-label="UniteSpace — ASG Invest">
+        <img src={`${import.meta.env.BASE_URL}asg-invest-logo.png`} alt="" className="workspace-ref-sidebar__wordmark" />
+        <img src={`${import.meta.env.BASE_URL}asg-invest-mark.png`} alt="" className="workspace-ref-sidebar__mark" />
       </button>
       <button
         type="button"

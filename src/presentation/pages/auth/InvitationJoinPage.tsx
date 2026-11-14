@@ -56,7 +56,7 @@ export default function InvitationJoinPage() {
     if (mounted.current) { forgetInvitation(); setDone(true); window.history.replaceState(window.history.state, '', window.location.pathname) }
   })
   return <main className="invitation-join"><section className="invitation-card" aria-busy={loading}>
-    <span className="invitation-brand"><img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" className="h-7 w-7 shrink-0" />UniteSpace</span>
+    <span className="invitation-brand"><img src={`${import.meta.env.BASE_URL}asg-invest-logo.png`} alt="ASG Invest" className="h-16 w-36 shrink-0 object-contain" /></span>
     {loading ? <p role="status">{t('loading')}</p> : done ? <>
       <h1>{activationPending ? t('activationTitle') : identity ? t('joined') : t('registered')}</h1>
       <p>{activationPending ? t('activationDescription') : identity ? t('joinedDescription') : t('registeredDescription')}</p>

@@ -14,7 +14,7 @@ export default function AppLoader({ size = 56, label }: AppLoaderProps) {
           style={{ animationDuration: '1s' }}
         />
         <img
-          src={`${import.meta.env.BASE_URL}unitespace-mark.svg`}
+          src={`${import.meta.env.BASE_URL}asg-invest-mark.png`}
           alt=""
           aria-hidden="true"
           draggable={false}

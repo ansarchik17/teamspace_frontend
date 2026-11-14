@@ -92,9 +92,8 @@
   letter-spacing: -.01em;
   color: var(--axis-text);
 }
-.axis-login-brand img { width: 28px; height: 28px; flex: none; }
+.axis-login-brand img { width: 140px; height: 64px; flex: none; object-fit: contain; }
 .axis-login-brand.is-inverse { color: #fff; }
-.axis-login-brand.is-inverse img { filter: brightness(0) invert(1); }
 .axis-login-hero-copy { margin-top: 48px; }
 .axis-login-hero-copy h2 {
   max-width: 560px;

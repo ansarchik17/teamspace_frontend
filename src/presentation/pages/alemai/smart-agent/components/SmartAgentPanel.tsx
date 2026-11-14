@@ -573,7 +573,7 @@ export function SmartAgentPanel({ token }: SmartAgentPanelProps) {
                 className="w-19 h-19 rounded-[1.25rem] mx-auto mb-5 flex items-center justify-center shadow-[0_18px_36px_rgba(17,81,190,0.3)]"
                 style={{ background: "linear-gradient(135deg, #0F4CBD 0%, #1A7EF0 100%)" }}
               >
-                <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="Team AI" className="w-20 h-20 object-contain" />
+                <img src={`${import.meta.env.BASE_URL}asg-invest-mark.png`} alt="Team AI" className="w-20 h-20 object-contain" />
               </div>
               <h2 className="text-[28px] font-extrabold tracking-tight text-[#0F1B3D] mb-1">Чем вам помочь?</h2>
               <p className="text-[14px] text-[#5F6B88]">Напишите ваш вопрос внизу</p>
@@ -598,7 +598,7 @@ export function SmartAgentPanel({ token }: SmartAgentPanelProps) {
                       className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center mt-0.5 shadow-[0_10px_20px_rgba(17,83,193,0.3)]"
                       style={{ background: "linear-gradient(135deg, #0F4CBD 0%, #1A7EF0 100%)" }}
                     >
-                      <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="Team AI" className="w-10 h-10 object-contain" />
+                      <img src={`${import.meta.env.BASE_URL}asg-invest-mark.png`} alt="Team AI" className="w-10 h-10 object-contain" />
                     </div>
                     <div className="flex-1 min-w-0">
                       {msg.text.trim() ? (
@@ -720,7 +720,7 @@ export function SmartAgentPanel({ token }: SmartAgentPanelProps) {
                   className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg, #0F4CBD 0%, #1A7EF0 100%)" }}
                 >
-                  <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="Team AI" className="w-4.5 h-4.5 object-contain" />
+                  <img src={`${import.meta.env.BASE_URL}asg-invest-mark.png`} alt="Team AI" className="w-4.5 h-4.5 object-contain" />
                 </div>
                 <div className="glass-card rounded-[18px] rounded-tl-md border border-[#D7E0F0] shadow-[0_8px_18px_rgba(20,53,112,0.14)]">
                   <TypingDots />

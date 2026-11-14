@@ -66,7 +66,7 @@ export default function WorkspaceSidebar({
             justifyContent: 'center',
           }}
         >
-          <img src={`${import.meta.env.BASE_URL}unitespace-mark.svg`} alt="" style={{ width: 34, height: 34 }} />
+          <img src={`${import.meta.env.BASE_URL}asg-invest-mark.png`} alt="" style={{ width: 34, height: 34 }} />
         </div>
         {!collapsed ? (
           <div>

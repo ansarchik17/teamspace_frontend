@@ -1,11 +1,7 @@
 import PageHeader from '../../../shared/ui/PageHeader'
 import AppButton from '../../../shared/ui/AppButton'
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import ChatPickerModal from '../../components/messenger/ChatPickerModal'
-import { LocalStorageAuthSessionStore } from '../../../infrastructure/storage/LocalStorageAuthSessionStore'
-import { authorizedFetch } from '../../../infrastructure/http/authorizedFetch'
-import AppToast from '../../../shared/ui/AppToast'
 
 function getPrimaryAccessToken(): string | null {
   try {
@@ -78,9 +74,6 @@ export default function WhiteboardPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const [isChatPickerOpen, setIsChatPickerOpen] = useState(false)
-  const [shareToast, setShareToast] = useState<{ message: string; variant: 'success' | 'error' | 'info' } | null>(null)
-  const session = useMemo(() => new LocalStorageAuthSessionStore(), [])
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // Получаем имя пользователя из токена и передаем его во фрейм вместе с параметрами (например, room)
@@ -168,60 +161,6 @@ export default function WhiteboardPage() {
     return () => clearInterval(interval)
   }, [location.search, navigate])
 
-  const getActiveRoomId = () => {
-    const params = new URLSearchParams(location.search)
-    let room = params.get('room')
-    if (room) return room
-
-    try {
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        const iframeParams = new URLSearchParams(iframeRef.current.contentWindow.location.search)
-        room = iframeParams.get('room')
-        if (room) return room
-      }
-    } catch (e) {
-      console.warn('Cannot read iframe url:', e)
-    }
-
-    return null
-  }
-
-  const handleShareToChat = async (chat: any) => {
-    const roomId = getActiveRoomId()
-    if (!roomId) {
-      setShareToast({ message: 'Комната еще не инициализирована', variant: 'error' })
-      return
-    }
-
-    setIsChatPickerOpen(false)
-    const shareUrl = `${window.location.origin}/web/whiteboard/?room=${roomId}`
-
-    const metadata = JSON.stringify({
-      type: 'whiteboard',
-      room_id: roomId,
-      url: shareUrl
-    })
-
-    const endpoint = chat.type === 'group' || chat.type === 'channel' 
-      ? `/api/v1/${chat.type === 'group' ? 'groups' : 'channels'}/${chat.id}/messages`
-      : `/api/v1/conversations/${chat.id}/messages`
-
-    try {
-      await authorizedFetch(session, endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          content: `Приглашаю к интерактивной доске:\n${shareUrl}`,
-          type: 'text',
-          metadata
-        })
-      })
-      setShareToast({ message: 'Ссылка на доску отправлена в чат', variant: 'success' })
-    } catch (e) {
-      console.error('Failed to share whiteboard to chat:', e)
-      setShareToast({ message: 'Не удалось отправить ссылку в чат', variant: 'error' })
-    }
-  }
-
   const handleJoinBoard = () => {
     if (!inputLink.trim()) return
 
@@ -254,7 +193,7 @@ export default function WhiteboardPage() {
       }}
     >
       <div className="shrink-0 px-4 pt-6 pb-4 md:px-6 xl:px-8">
-        <PageHeader title="Whiteboard" description="Схемы, идеи и совместная работа на одной доске" actions={<AppButton variant="secondary" onClick={() => setIsChatPickerOpen(true)}>Отправить в чат</AppButton>} />
+        <PageHeader title="Whiteboard" description="Схемы, идеи и совместная работа на одной доске" />
         <div className="ts-toolbar mt-5">
           <label className="ts-toolbar__search">
             <span className="sr-only">Ссылка или ID доски</span>
@@ -313,19 +252,7 @@ export default function WhiteboardPage() {
           allow="clipboard-write; clipboard-read"
         />
       </div>
-      <ChatPickerModal
-        isOpen={isChatPickerOpen}
-        onClose={() => setIsChatPickerOpen(false)}
-        onSelect={handleShareToChat}
-        title="Отправить доску в чат"
-      />
-      {shareToast && (
-        <AppToast
-          message={shareToast.message}
-          variant={shareToast.variant}
-          onClose={() => setShareToast(null)}
-        />
-      )}
+
     </div>
   )
 }

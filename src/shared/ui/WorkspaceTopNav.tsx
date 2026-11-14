@@ -153,7 +153,6 @@ interface WorkspaceTopNavProps {
   /** Для ограничения раздела AlemContact */
   userEmail?: string
   avatarUrl?: string
-  chatUnreadCount?: number
   accessToken?: string | null
   sidebarCollapsed?: boolean
   onToggleSidebar?: () => void
@@ -183,7 +182,6 @@ export default function WorkspaceTopNav({
   userName = '',
   userEmail = '',
   avatarUrl,
-  chatUnreadCount = 0,
   accessToken,
   sidebarCollapsed = false,
   onToggleSidebar,
@@ -540,7 +538,7 @@ export default function WorkspaceTopNav({
                   if (!item) return null
                   const isActive = activeNav === item.id
                   const isAiNav = Boolean(item.isAi)
-                  const itemBadge = item.id === 'chat' ? chatUnreadCount : item.badge
+                  const itemBadge = item.badge
                   return (
                     <button
                       key={item.id}

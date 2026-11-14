@@ -13,7 +13,6 @@ const InvitationJoinPage = lazy(() => import('./presentation/pages/auth/Invitati
 const LogoutCompletePage = lazy(() => import('./presentation/pages/auth/LogoutCompletePage'))
 const AuthCallbackPage = lazy(() => import('./presentation/pages/auth/AuthCallbackPage'))
 const WorkspaceLayout = lazy(() => import('./presentation/pages/dashboard/WorkspaceLayout'))
-const MessengerPage = lazy(() => import('./presentation/pages/messenger/MessengerPage'))
 const WorkspacePage = lazy(() => import('./presentation/pages/workspace/WorkspacePage'))
 const ContactsSyncPage = lazy(() => import('./presentation/pages/organization/ContactsSyncPage'))
 const OrganizationAccessPage = lazy(() => import('./presentation/pages/organization/OrganizationAccessPage'))
@@ -182,12 +181,10 @@ export default function App() {
             <Route path="/whatsapp/manage" element={<CrmMessengerRedirect channel="whatsapp/manage" />} />
             <Route path="/whatsapp" element={<CrmMessengerRedirect channel="whatsapp" />} />
             <Route path="/telegram" element={<CrmMessengerRedirect channel="telegram" />} />
-            <Route path="/messenger" element={<MessengerPage />} />
-            <Route path="/messenger/:username" element={<MessengerPage />} />
-            <Route path="/:username" element={<MessengerPage />} />
           </Route>
         </Route>
 
+        <Route path="/messenger/*" element={<Navigate to="/workspace" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </Suspense>

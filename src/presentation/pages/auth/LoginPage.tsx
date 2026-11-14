@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { hideAppSplash, showAppSplash } from '../../../shared/ui/axisSplash'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -94,7 +94,6 @@ export default function LoginPage() {
   const [corporateLogin, setCorporateLogin] = useState<{ organization: string; available: boolean } | null>(null)
   const corporateOrganization = loginOrganization(organizationSlug, loginHint, import.meta.env.VITE_TENANT_BASE_DOMAIN || 'teamspace.kz')
   const canUseCorporateLogin = !tenantLoginHost && corporateOrganization !== null && corporateLogin?.organization === corporateOrganization && corporateLogin.available
-  const embeddedMessengerRedirectStartedRef = useRef(false)
   const { authController, sessionStore } = useMemo(() => createAuthController(), [])
   const passwordLoginUseCase = useMemo(() => new LoginUseCase(new HttpAuthRepository(), sessionStore), [sessionStore])
 
@@ -160,20 +159,6 @@ export default function LoginPage() {
     showAppSplash(t('login.goingToSso'))
     window.location.href = `/api/v1/auth/keycloak/login?${params.toString()}`
   }, [organizationSlug, redirectTo, t])
-
-  const isEmbeddedMessengerRequest = useMemo(() => {
-    if (!redirectTo.trim().startsWith('/')) return false
-    try {
-      const url = new URL(redirectTo, 'https://axis-workspace.kz')
-      return (url.pathname === '/messenger' || url.pathname.startsWith('/messenger/')) && url.searchParams.get('embedded') === 'true'
-    } catch { return false }
-  }, [redirectTo])
-
-  useEffect(() => {
-    if (isBootstrapping || isLoadingLogin || !isEmbeddedMessengerRequest || embeddedMessengerRedirectStartedRef.current || isTenantWorkspaceHost()) return
-    embeddedMessengerRedirectStartedRef.current = true
-    handleKeycloakLogin()
-  }, [handleKeycloakLogin, isBootstrapping, isEmbeddedMessengerRequest, isLoadingLogin])
 
   const NoticeIcon = notice ? noticeIcon[notice.kind] : null
 

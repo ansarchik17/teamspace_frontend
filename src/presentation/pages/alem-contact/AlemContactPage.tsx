@@ -24,7 +24,6 @@ import { AXIS_UI } from '../../../shared/ui/axisTokens'
 import ViewToggle from '../../../shared/ui/ViewToggle'
 import PeopleSectionHeader from '../../components/people/PeopleSectionHeader'
 import { authorizedFetch } from '../../../infrastructure/http/authorizedFetch'
-import { writeLastActiveChatId } from '../../../shared/messenger/lastActiveChat'
 import { normalizeBackendAssetUrl } from '../../../infrastructure/http/normalizeBackendAssetUrl'
 import { useTranslation } from 'react-i18next'
 import { ct } from './contactsText'
@@ -847,7 +846,6 @@ function ContactProfileDetails({
   sessionStore,
   onSelectContact,
   onAvatarChanged,
-  onOpenChat,
   onCreateMeeting,
   onStartCall,
   isCallBusy,
@@ -860,7 +858,6 @@ function ContactProfileDetails({
   sessionStore: LocalStorageAuthSessionStore
   onSelectContact?: (contact: AlemContact) => void
   onAvatarChanged?: (contact: AlemContact) => void
-  onOpenChat?: (peerId: number) => Promise<void>
   onCreateMeeting?: (meeting: { title: string; attendeeIds: number[] }) => void
   onStartCall?: () => void
   isCallBusy?: boolean
@@ -869,7 +866,7 @@ function ContactProfileDetails({
   onOffboarded?: () => void
 }) {
   const [offboardingOpen, setOffboardingOpen] = useState(false)
-  const [actionBusy, setActionBusy] = useState<'chat' | 'email' | 'meeting' | null>(null)
+  const [actionBusy, setActionBusy] = useState<'email' | 'meeting' | null>(null)
   const [actionError, setActionError] = useState('')
   const [profile, setProfile] = useState<ContactProfileView | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1021,7 +1018,7 @@ function ContactProfileDetails({
   const actionTitle = (action?: { enabled?: boolean; disabled_reason?: string; label?: string }) =>
     action && action.enabled === false ? CONTACT_ACTION_DISABLED_HINTS[action.disabled_reason ?? ''] ?? ct('page.t069') : action?.label
 
-  const runAction = async (kind: 'chat' | 'email' | 'meeting') => {
+  const runAction = async (kind: 'email' | 'meeting') => {
     setActionBusy(kind)
     setActionError('')
     try {
@@ -1031,10 +1028,7 @@ function ContactProfileDetails({
         return
       }
       setProfile((current) => current ? { ...current, actions: fresh } : current)
-      if (kind === 'chat') {
-        if (!fresh.chat?.enabled || typeof fresh.chat.peer_id !== 'number') { setActionError(actionTitle(fresh.chat) || ct('page.t071')); return }
-        await onOpenChat?.(fresh.chat.peer_id)
-      } else if (kind === 'email') {
+      if (kind === 'email') {
         if (!fresh.email?.enabled || !isSafeMailto(fresh.email.mailto_url)) { setActionError(actionTitle(fresh.email) || ct('page.t072')); return }
         window.location.href = fresh.email.mailto_url
       } else {
@@ -1053,10 +1047,6 @@ function ContactProfileDetails({
       {actions ? (
         <div className="border-b border-[#E2E5EA] px-5 py-4">
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => void runAction('chat')} disabled={actionBusy !== null || actions.chat?.enabled === false} title={actionTitle(actions.chat)} className={`${AXIS_UI.primaryButton} !px-3`}>
-              <MaterialSymbol name="chat_bubble" size={18} color="currentColor" />
-              {actionBusy === 'chat' ? ct('page.t075') : ct('page.t076')}
-            </button>
             <button type="button" onClick={() => void runAction('email')} disabled={actionBusy !== null || actions.email?.enabled === false} title={actionTitle(actions.email)} className={`${AXIS_UI.secondaryButton} !h-11`}>
               <MaterialSymbol name="mail" size={18} color="currentColor" />
               Email
@@ -1065,7 +1055,7 @@ function ContactProfileDetails({
               <MaterialSymbol name="event" size={18} color="currentColor" />
               {ct('page.t077')}
             </button>
-            <button type="button" onClick={onStartCall} disabled={isCallBusy || isOwn} title={isOwn ? CONTACT_ACTION_DISABLED_HINTS.self_contact : isCallBusy ? callBusyLabel : ct('page.t078')} className={`${AXIS_UI.secondaryButton} !h-11`}>
+            <button type="button" onClick={onStartCall} disabled={isCallBusy || isOwn} title={isOwn ? CONTACT_ACTION_DISABLED_HINTS.self_contact : isCallBusy ? callBusyLabel : ct('page.t078')} className={`${AXIS_UI.secondaryButton} col-span-2 !h-11`}>
               <MaterialSymbol name="call" size={18} color="currentColor" />
               {ct('page.t079')}
             </button>
@@ -1214,7 +1204,6 @@ function EmployeeProfilePanel({
   managerInitials,
   structureHref,
   onClose,
-  onStartChat,
   onStartCall,
   onSelectManager,
   onEdit,
@@ -1224,14 +1213,13 @@ function EmployeeProfilePanel({
   actionError,
   profileApi,
 }: {
-  profileApi?: { sessionStore: LocalStorageAuthSessionStore; isOwn: boolean; onSelectContact?: (contact: AlemContact) => void; onAvatarChanged?: (contact: AlemContact) => void; onOpenChat?: (peerId: number) => Promise<void>; onCreateMeeting?: (meeting: { title: string; attendeeIds: number[] }) => void; canOffboard?: boolean; onOffboarded?: () => void }
+  profileApi?: { sessionStore: LocalStorageAuthSessionStore; isOwn: boolean; onSelectContact?: (contact: AlemContact) => void; onAvatarChanged?: (contact: AlemContact) => void; onCreateMeeting?: (meeting: { title: string; attendeeIds: number[] }) => void; canOffboard?: boolean; onOffboarded?: () => void }
   contact: AlemContact
   initials: string
   manager?: AlemContact
   managerInitials?: string
   structureHref: string
   onClose: () => void
-  onStartChat: () => void
   onStartCall: () => void
   onSelectManager?: () => void
   onEdit?: () => void
@@ -1273,11 +1261,7 @@ function EmployeeProfilePanel({
           {availabilityLabel(contact.availability_status) || (contact.is_active ? ct('page.t008') : ct('page.t009'))}
         </div>
 
-        {profileApi ? null : <div className="mt-4 grid grid-cols-2 gap-2">
-          <button type="button" onClick={onStartChat} className={`${AXIS_UI.primaryButton} !px-3`}>
-            <MaterialSymbol name="chat_bubble" size={18} color="currentColor" />
-            {ct('page.t076')}
-          </button>
+        {profileApi ? null : <div className="mt-4 grid grid-cols-1 gap-2">
           <button
             type="button"
             onClick={onStartCall}
@@ -1342,7 +1326,7 @@ function EmployeeProfilePanel({
                 />
               </dl>
             </ProfileSection>
-            {profileApi ? <ContactProfileDetails userId={contact.id} isOwn={profileApi.isOwn} sessionStore={profileApi.sessionStore} onSelectContact={profileApi.onSelectContact} onAvatarChanged={profileApi.onAvatarChanged} onOpenChat={profileApi.onOpenChat} onCreateMeeting={profileApi.onCreateMeeting} onStartCall={onStartCall} isCallBusy={isCallBusy} callBusyLabel={callBusyLabel} canOffboard={profileApi.canOffboard} onOffboarded={profileApi.onOffboarded} /> : (
+            {profileApi ? <ContactProfileDetails userId={contact.id} isOwn={profileApi.isOwn} sessionStore={profileApi.sessionStore} onSelectContact={profileApi.onSelectContact} onAvatarChanged={profileApi.onAvatarChanged} onCreateMeeting={profileApi.onCreateMeeting} onStartCall={onStartCall} isCallBusy={isCallBusy} callBusyLabel={callBusyLabel} canOffboard={profileApi.canOffboard} onOffboarded={profileApi.onOffboarded} /> : (
               <>
             <ProfileSection title={ct('page.t099')}>
               {manager ? (
@@ -2350,19 +2334,6 @@ export default function AlemContactPage() {
     [displayFullName],
   )
 
-  const openMessengerForContact = useCallback(
-    (contact: AlemContact) => {
-      const username = contact.username?.trim()
-      if (username) {
-        navigate(`/messenger/@${encodeURIComponent(username)}`)
-        return
-      }
-
-      navigate('/messenger')
-    },
-    [navigate],
-  )
-
   const startCallForContact = useCallback(
     async (contact: AlemContact) => {
       setContactActionError(null)
@@ -2391,22 +2362,6 @@ export default function AlemContactPage() {
       knownContactsRef.current.set(person.id, { ...(knownContactsRef.current.get(person.id) ?? {}), ...person })
       setContactActionError(null)
       setSelected(knownContactsRef.current.get(person.id) ?? person)
-    },
-    onOpenChat: async (peerId: number) => {
-      const response = await authorizedFetch(sessionStore, '/api/v1/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ peer_id: peerId }),
-      })
-      const conversation = await response.json() as { id?: string }
-      const isNarrow = window.matchMedia('(max-width: 959px)').matches
-      if (conversation.id && currentUser?.id != null && !isNarrow) {
-        writeLastActiveChatId(currentUser.id, conversation.id)
-        navigate('/messenger')
-        return
-      }
-      const username = selected.username?.trim()
-      navigate(username ? `/messenger/@${encodeURIComponent(username)}` : '/messenger')
     },
     onCreateMeeting: (meeting: { title: string; attendeeIds: number[] }) => {
       navigate('/calendar', { state: { createEvent: meeting } })
@@ -2707,7 +2662,7 @@ export default function AlemContactPage() {
                     managerInitials={selectedManager ? initialsFor(selectedManager) : undefined}
                     structureHref={structureHref}
                     onClose={() => setSelected(null)}
-                    onStartChat={() => openMessengerForContact(selected)}
+
                     onStartCall={() => void startCallForContact(selected)}
                     onSelectManager={selectedManager ? () => selectContact(selectedManager) : undefined}
                     onEdit={canModifyContact(selected) ? () => openEditUserModal(selected) : undefined}
@@ -2736,7 +2691,7 @@ export default function AlemContactPage() {
                 managerInitials={selectedManager ? initialsFor(selectedManager) : undefined}
                 structureHref={structureHref}
                 onClose={() => setSelected(null)}
-                onStartChat={() => openMessengerForContact(selected)}
+
                 onStartCall={() => void startCallForContact(selected)}
                 onSelectManager={selectedManager ? () => selectContact(selectedManager) : undefined}
                 onEdit={canModifyContact(selected) ? () => openEditUserModal(selected) : undefined}

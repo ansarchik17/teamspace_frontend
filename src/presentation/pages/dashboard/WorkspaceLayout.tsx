@@ -1,14 +1,13 @@
 /* eslint-disable */
 // @ts-nocheck
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getBrowserNotificationPermission, requestBrowserNotificationPermission, showBrowserNotification } from '../../../shared/notifications/browserNotifications'
+import { getBrowserNotificationPermission, requestBrowserNotificationPermission } from '../../../shared/notifications/browserNotifications'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { applyProfileLanguage, formatDateTime, i18n } from '../../../shared/i18n'
 import { LogoutUseCase } from '../../../application/use-cases/auth/LogoutUseCase'
 import { NotificationRealtimeClient } from '../../../infrastructure/notifications/NotificationRealtimeClient'
 import { HttpAuthRepository } from '../../../infrastructure/repositories/HttpAuthRepository'
-import { HttpChatRepository } from '../../../infrastructure/repositories/HttpChatRepository'
 import { HttpProfileRepository } from '../../../infrastructure/repositories/HttpProfileRepository'
 import { LocalStorageAuthSessionStore } from '../../../infrastructure/storage/LocalStorageAuthSessionStore'
 import TopNavLayout from '../../../shared/ui/TopNavLayout'
@@ -37,27 +36,13 @@ import { createHomeDashboardController } from '../../dashboard/createHomeDashboa
 import { getDefaultHomeDashboardViewModel } from '../../view-models/HomeDashboardViewModel'
 import { createNotificationController } from '../../notifications/createNotificationController'
 import type { NotificationItemViewModel } from '../../view-models/NotificationViewModel'
-import {
-  attachMessageNotificationAudioUnlockListeners,
-  playMessageNotificationSound,
-} from '../../../shared/audio/messageNotificationSound'
-import {
-  ALEM_MESSENGER_MUTE_MAP_EVENT,
-  type MessengerMuteMapDetail,
-} from '../../../shared/messenger/muteMapEvents'
-import {
-  getRealtimeContentRecord,
-  isIncomingChatMuted,
-  normalizeConversationIdKey,
-  resolveRealtimeConversationId,
-} from '../../../shared/messenger/realtimeConversationId'
-import { shouldReloadMessengerChatList } from '../../../shared/messenger/messengerWsEventsWithoutChatReload'
+import { getRealtimeContentRecord, resolveRealtimeConversationId } from '../../../shared/messenger/realtimeConversationId'
+import { isInternalChatNotification } from '../../../shared/notifications/internalChatNotifications'
 import PeopleSectionSidebar from '../../components/people/PeopleSectionSidebar'
 import CrmSectionSidebar from '../../components/crm/CrmSectionSidebar'
 import WorkSectionSidebar from '../../components/work/WorkSectionSidebar'
 import { PeopleNavContext, isPeopleSectionPath, type PeopleNavState, type PeopleNavTab } from '../../components/people/peopleNav'
 
-const MESSENGER_UNREAD_COUNT_EVENT = 'messenger:unread-count-changed'
 const GLOBAL_TOAST_LIMIT = 4
 const NOTIFICATION_REFRESH_INTERVAL_MS = 20000
 
@@ -109,15 +94,6 @@ const resolveAnalyticsSection = (pathname: string): { section: string; path: str
   if (normalizedPath.startsWith('/profile')) {
     return { section: 'profile', path: normalizedPath }
   }
-  if (normalizedPath.startsWith('/messenger')) {
-    return { section: 'messenger', path: normalizedPath }
-  }
-
-  const singleSegmentPath = normalizedPath.match(/^\/[^/]+$/)
-  if (singleSegmentPath) {
-    return { section: 'messenger', path: normalizedPath }
-  }
-
   return null
 }
 
@@ -221,7 +197,7 @@ const toFiniteNumber = (value: unknown): number | null => {
 
 const toRealtimeNotification = (event: Record<string, unknown>): NotificationItemViewModel | null => {
   const eventType = typeof event.type === 'string' ? event.type : ''
-  if (!eventType) return null
+  if (!eventType || isInternalChatNotification(event)) return null
 
   const parsedEventContent = getRealtimeContentRecord(event)
   const objectEventContent =
@@ -523,7 +499,6 @@ export default function WorkspaceLayout() {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [dashboardData] = useState(getDefaultHomeDashboardViewModel())
   const [notifications, setNotifications] = useState<NotificationItemViewModel[]>([])
-  const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [newEmail, setNewEmail] = useState('')
   const [emailUpdateError, setEmailUpdateError] = useState('')
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
@@ -534,7 +509,6 @@ export default function WorkspaceLayout() {
   const [calendarInviteResponses, setCalendarInviteResponses] = useState<Record<string, CalendarInviteResponseStatus>>({})
   const [notificationSocketStatus, setNotificationSocketStatus] = useState('idle')
   const shownRealtimeToastIdsRef = useRef<Set<string>>(new Set())
-  const messengerMuteMapRef = useRef<MessengerMuteMapDetail>({})
 
   const [driveDeleteRequestStatuses, setDriveDeleteRequestStatuses] = useState<Record<string, 'approved' | 'rejected'>>({})
 
@@ -542,6 +516,7 @@ export default function WorkspaceLayout() {
     applyDriveDeleteRequestStatuses(
       applyCalendarInviteResponses(
         items
+          .filter((item) => !isInternalChatNotification(item))
           .slice()
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
         calendarInviteResponses,
@@ -553,7 +528,6 @@ export default function WorkspaceLayout() {
   const authRepository = useMemo(() => new HttpAuthRepository(), [])
   const sessionStore = useMemo(() => new LocalStorageAuthSessionStore(), [])
   const profileRepository = useMemo(() => new HttpProfileRepository(sessionStore), [sessionStore])
-  const chatRepository = useMemo(() => new HttpChatRepository(sessionStore), [sessionStore])
   const logoutUseCase = useMemo(() => new LogoutUseCase(authRepository, sessionStore), [authRepository, sessionStore])
   const { authController } = useMemo(() => createAuthController(), [])
   const { calendarController } = useMemo(() => createCalendarController(), [])
@@ -563,9 +537,7 @@ export default function WorkspaceLayout() {
     [],
   )
 
-  const routeActiveNav = location.pathname.startsWith('/messenger')
-    ? 'chat'
-    : location.pathname.startsWith('/profile')
+  const routeActiveNav = location.pathname.startsWith('/profile')
       ? 'profile'
       : location.pathname.startsWith('/meet')
         ? 'meet'
@@ -603,9 +575,6 @@ export default function WorkspaceLayout() {
 
     void profileRepository.trackSectionVisit(analyticsTarget.section, analyticsTarget.path).catch(() => undefined)
   }, [location.pathname, profileRepository])
-  useEffect(() => {
-    return attachMessageNotificationAudioUnlockListeners()
-  }, [])
 
   useEffect(() => {
     let isCancelled = false
@@ -624,10 +593,9 @@ export default function WorkspaceLayout() {
 
     const load = async () => {
       try {
-        const [authModel, notificationList, unifiedChats] = await Promise.all([
+        const [authModel, notificationList] = await Promise.all([
           authController.bootstrap(),
           notificationController.loadNotifications({ limit: 50, offset: 0 }),
-          chatRepository.getUnifiedChats(),
         ])
 
         if (isCancelled) {
@@ -640,16 +608,6 @@ export default function WorkspaceLayout() {
         setCurrentUserId(typeof authModel.userId === 'number' ? authModel.userId : null)
         setAvatarUrl(authModel.avatarUrl || '')
         setNotifications(applyNotificationState(notificationList))
-        setChatUnreadCount(unifiedChats.reduce((sum, chat) => sum + (chat.unreadCount ?? 0), 0))
-
-        const muteBootstrap: MessengerMuteMapDetail = {}
-        for (const chat of unifiedChats) {
-          muteBootstrap[normalizeConversationIdKey(chat.id)] = chat.isMuted
-          if (chat.type === 'personal' && typeof chat.peerId === 'number') {
-            muteBootstrap[`peer:${chat.peerId}`] = chat.isMuted
-          }
-        }
-        messengerMuteMapRef.current = muteBootstrap
       } catch {
         // silently ignore at layout level
       } finally {
@@ -664,7 +622,7 @@ export default function WorkspaceLayout() {
     return () => {
       isCancelled = true
     }
-  }, [applyNotificationState, authController, chatRepository, notificationController])
+  }, [applyNotificationState, authController, notificationController])
 
   const refreshNotifications = useCallback(async (options?: { showToastForNew?: boolean }) => {
     const refreshed = await notificationController.loadNotifications({ limit: 50, offset: 0, force: true })
@@ -700,22 +658,6 @@ export default function WorkspaceLayout() {
   }, [applyNotificationState, notificationController])
 
   useEffect(() => {
-    const onMuteMap = (e: Event) => {
-      const detail = (e as CustomEvent<MessengerMuteMapDetail>).detail
-      if (!detail || typeof detail !== 'object') {
-        return
-      }
-      const next: MessengerMuteMapDetail = { ...messengerMuteMapRef.current }
-      for (const [key, value] of Object.entries(detail)) {
-        next[normalizeConversationIdKey(key)] = Boolean(value)
-      }
-      messengerMuteMapRef.current = next
-    }
-    window.addEventListener(ALEM_MESSENGER_MUTE_MAP_EVENT, onMuteMap as EventListener)
-    return () => window.removeEventListener(ALEM_MESSENGER_MUTE_MAP_EVENT, onMuteMap as EventListener)
-  }, [])
-
-  useEffect(() => {
     const unsubscribeStatus = notificationRealtimeClient.subscribeStatus((nextStatus) => {
       setNotificationSocketStatus(nextStatus)
     })
@@ -724,60 +666,7 @@ export default function WorkspaceLayout() {
       const eventType = typeof event.type === 'string' ? event.type : ''
       const eventTypeNorm = eventType.toLowerCase()
 
-      const shouldRefreshChats = shouldReloadMessengerChatList(eventType)
-
       if (eventTypeNorm === 'publication_alert') notifyPublicationBannersChanged()
-
-      if (shouldRefreshChats) {
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('messenger:refresh-chats', { detail: event }))
-        }
-      }
-
-      if (eventTypeNorm === 'unread_count_updated') {
-        if (!/^\/(?:web\/)?messenger(?:\/|$)/.test(window.location.pathname)) {
-          void chatRepository.getUnifiedChats().then((chats) => {
-            setChatUnreadCount(chats.reduce((sum, chat) => sum + (chat.unreadCount ?? 0), 0))
-          }).catch(() => {})
-        }
-        return
-      }
-
-      const parsedContent = getRealtimeContentRecord(event)
-      const eventContent =
-        event.content && typeof event.content === 'object' && !Array.isArray(event.content)
-          ? (event.content as Record<string, unknown>)
-          : parsedContent
-
-      const isChatWsMessage =
-        eventTypeNorm === 'new_message' ||
-        eventTypeNorm === 'chat_message' ||
-        eventTypeNorm === 'message_created'
-
-      let isMuted = false
-      let isMention = false
-      if (isChatWsMessage || eventTypeNorm === 'new_channel_post') {
-        isMention = Boolean(
-          (event as { is_mention?: unknown }).is_mention ??
-            parsedContent?.is_mention ??
-            eventContent?.is_mention,
-        )
-        isMuted = isChatWsMessage && isIncomingChatMuted(event, messengerMuteMapRef.current) && !isMention
-      }
-
-      const senderId = toFiniteNumber(
-        eventContent?.sender_id ??
-        eventContent?.senderId ??
-        eventContent?.author_id ??
-        eventContent?.authorId ??
-        eventContent?.user_id ??
-        eventContent?.userId ??
-        event.from,
-      )
-      if (currentUserId !== null && senderId === currentUserId && 
-          (eventTypeNorm === 'new_message' || eventTypeNorm === 'chat_message' || eventTypeNorm === 'message_created' || eventTypeNorm === 'typing')) {
-        return
-      }
 
       const mapped = toRealtimeNotification(event)
       if (!mapped) return
@@ -788,34 +677,6 @@ export default function WorkspaceLayout() {
           driveDeleteRequestStatuses,
         ),
       )
-
-      if (isMention && senderId !== currentUserId && (document.hidden || !/^\/(?:web\/)?messenger(?:\/|$)/.test(window.location.pathname))) {
-        showBrowserNotification(i18n.t('shell:notifications.mention'), {
-          body: [mapped.title, mapped.subtitle].filter(Boolean).join(' · '),
-          tag: `mention:${mapped.id}`,
-          onClick: () => navigate('/messenger'),
-        })
-      }
-
-      // Play sound and increment count for all types of incoming chat messages
-      const isAnyChatMessage = mapped.type === 'new_message' || eventTypeNorm === 'new_message' || eventTypeNorm === 'chat_message' || eventTypeNorm === 'message_created' || eventTypeNorm === 'message'
-      if (isAnyChatMessage) {
-        // Play sound ONLY if NOT muted
-        if (!isMuted) {
-          playMessageNotificationSound()
-        }
-
-        // Increment unread count ALWAYS (even if muted) if not currently in messenger route
-        if (typeof window !== 'undefined' && !/^\/(?:web\/)?messenger(?:\/|$)/.test(window.location.pathname)) {
-          // Refresh unread count from server to be 100% accurate
-          void chatRepository.getUnifiedChats().then(chats => {
-            const total = chats.reduce((sum, chat) => sum + (chat.unreadCount ?? 0), 0)
-            setChatUnreadCount(total)
-          }).catch(() => {})
-        }
-      }
-
-      if (isMuted) return // Don't show toasts for muted chats
 
       const toast = toGlobalToast(mapped)
       if (!toast) return
@@ -889,22 +750,6 @@ export default function WorkspaceLayout() {
     }
   }, [isNotificationsBootstrapped, notificationSocketStatus, refreshNotifications])
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    const handleUnreadCountChange = (event: Event) => {
-      const nextUnreadCount = (event as CustomEvent<number>).detail
-      setChatUnreadCount(typeof nextUnreadCount === 'number' ? nextUnreadCount : 0)
-    }
-
-    window.addEventListener(MESSENGER_UNREAD_COUNT_EVENT, handleUnreadCountChange as EventListener)
-
-    return () => {
-      window.removeEventListener(MESSENGER_UNREAD_COUNT_EVENT, handleUnreadCountChange as EventListener)
-    }
-  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -1332,7 +1177,6 @@ export default function WorkspaceLayout() {
           userRole={userRole}
           userEmail={userEmail}
           avatarUrl={avatarUrl}
-          chatUnreadCount={chatUnreadCount}
         accessToken={sessionStore.getTokens()?.accessToken}
       />
       {!isEmbedded ? <PublicationBannerHost sessionStore={sessionStore} /> : null}
@@ -1349,13 +1193,12 @@ export default function WorkspaceLayout() {
     >
       <>
         <PeopleNavContext.Provider value={publishPeopleNav}>
-        <div className={`workspace-app-shell${routeActiveNav === 'chat' ? ' workspace-messenger-shell' : ''}${isSidebarCollapsed ? ' workspace-sidebar-collapsed' : ''}${(isPeopleMode || isCrmMode || isWorkMode) && !isTablet && !isEmbedded ? ' workspace-people-mode' : ''}`}>
+        <div className={`workspace-app-shell${isSidebarCollapsed ? ' workspace-sidebar-collapsed' : ''}${(isPeopleMode || isCrmMode || isWorkMode) && !isTablet && !isEmbedded ? ' workspace-people-mode' : ''}`}>
           {!isTablet && !isEmbedded ? (
             <WorkspaceReferenceSidebar
               userRole={userRole}
               collapsed={isSidebarCollapsed}
               onToggleCollapsed={toggleSidebar}
-              messengerUnreadCount={chatUnreadCount}
             />
           ) : null}
           {isCrmMode && !isTablet && !isEmbedded ? <CrmSectionSidebar /> : null}

@@ -35,7 +35,6 @@ export const WORKSPACE_NAV_GROUPS: WorkspaceNavGroup[] = [
       { id: 'profile', icon: 'badge', label: 'Profile' },
       // { id: 'tasks', icon: 'check_circle', label: 'Задачи', badge: 5 },
       // { id: 'docs', icon: 'folder', label: 'Документы' },
-      { id: 'chat', icon: 'forum', label: 'Сообщения', badge: 2 },
     ],
   },
   // {

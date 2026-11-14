@@ -11,7 +11,6 @@ import type calendar from './locales/ru/calendar.json'
 import type home from './locales/ru/home.json'
 import type ai from './locales/ru/ai.json'
 import type board from './locales/ru/board.json'
-import type messenger from './locales/ru/messenger.json'
 import type notes from './locales/ru/notes.json'
 import type contacts from './locales/ru/contacts.json'
 import type invitations from './locales/ru/invitations.json'
@@ -31,7 +30,6 @@ declare module 'i18next' {
       home: typeof home
       ai: typeof ai
       board: typeof board
-      messenger: typeof messenger
       notes: typeof notes
       contacts: typeof contacts
       invitations: typeof invitations

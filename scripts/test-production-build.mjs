@@ -12,6 +12,8 @@ const dist = resolve(dirname(fileURLToPath(import.meta.url)), '../dist')
 const authRu = JSON.parse(await readFile(new URL('../src/shared/i18n/locales/ru/auth.json', import.meta.url), 'utf8'))
 const loginHeading = authRu.login.title
 await stat(resolve(dist, 'index.html'))
+const manifest = JSON.parse(await readFile(resolve(dist, '.vite/manifest.json'), 'utf8'))
+assert.equal(Object.keys(manifest).some(key => /presentation\/pages\/messenger\//.test(key)), false, 'Removed messenger must not ship a page chunk')
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2' }
 const server = createServer(async (req, res) => {
   try {
@@ -41,7 +43,7 @@ let browser
 let page
 const errors = []
 try {
-  browser = await chromium.launch({ headless: true })
+  browser = await chromium.launch({ headless: true, channel: process.env.BROWSER_CHECK_CHANNEL || undefined })
   const context = await browser.newContext({ locale: 'ru-RU', serviceWorkers: 'block' })
   await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort())
   page = await context.newPage()
@@ -54,6 +56,11 @@ try {
     assert.deepEqual(errors, [], 'Production bundle raised a JavaScript error')
   }
   await open('/web/login', loginHeading)
+  for (const path of ['/web/messenger', '/web/messenger/@saved-user', '/web/@saved-user']) {
+    await page.goto(origin + path)
+    await page.waitForURL(origin + '/web/login')
+    await page.getByRole('heading', { name: loginHeading, exact: true }).waitFor({ state: 'visible' })
+  }
   await page.getByLabel(authRu.form.loginLabel, { exact: true }).waitFor({ state: 'visible' })
   await page.getByLabel(authRu.form.passwordLabel, { exact: true }).waitFor({ state: 'visible' })
   await page.getByRole('button', { name: authRu.form.submit, exact: true }).waitFor({ state: 'visible' })

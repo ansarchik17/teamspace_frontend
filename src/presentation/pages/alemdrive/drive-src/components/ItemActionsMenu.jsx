@@ -9,7 +9,6 @@ import {
     FileDown,
     FolderInput,
     Info,
-    MessageCircle,
     MoreHorizontal,
     PencilLine,
     RotateCcw,
@@ -182,7 +181,6 @@ export default function ItemActionsMenu({
                             <MenuItem icon={Star} label={isFavorite ? t('actions.unfavorite') : t('actions.favorite')} onClick={run(actions.favorite)} />
                         ) : null}
                         {actions.copy ? <MenuItem icon={Copy} label={t('actions.copy')} onClick={run(actions.copy)} /> : null}
-                        {actions.messenger && !isFolder ? <MenuItem icon={MessageCircle} label={t('actions.sendToChat')} onClick={run(actions.messenger)} /> : null}
                         {fetchingRole ? (
                             <div className="flex h-9 items-center px-3 text-[13px] text-[#586174]">{t('actions.checkingAccess')}</div>
                         ) : hasEditAccess || canManageAccess ? (

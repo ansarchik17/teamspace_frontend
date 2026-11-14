@@ -53,7 +53,6 @@ interface NotesMeetingAiPanelProps {
   repository: HttpAlemAiRepository
   notesRepo: HttpNoteRepository
   onNoteCreated: (note: Note) => void
-  onShareNote: (note: Note) => void
   showError: (message: string) => void
   showSuccess: (message: string) => void
 }
@@ -62,7 +61,6 @@ export default function NotesMeetingAiPanel({
   repository,
   notesRepo,
   onNoteCreated,
-  onShareNote,
   showError,
   showSuccess,
 }: NotesMeetingAiPanelProps) {
@@ -318,7 +316,7 @@ export default function NotesMeetingAiPanel({
     [selectedJob?.result],
   )
 
-  const createNoteFromJob = async (share = false) => {
+  const createNoteFromJob = async () => {
     if (!displayResult || !selectedJob || selectedJob.status !== 'completed' || savePending.current) return
     const { summaryText, transcriptText, actionItems, topics, decisions, openQuestions, risks } = displayResult
     const blocks: Array<{ id: string; type: 'paragraph'; runs: Array<{ text: string; marks?: string[] }> }> = []
@@ -359,8 +357,7 @@ export default function NotesMeetingAiPanel({
         is_archived: false,
       })
       showSuccess(nt('meeting.t18'))
-      if (share) onShareNote(note)
-      else onNoteCreated(note)
+      onNoteCreated(note)
     } catch (e) {
       showError(e instanceof Error ? e.message : nt('meeting.t19'))
     } finally {
@@ -401,7 +398,6 @@ export default function NotesMeetingAiPanel({
           <div className="meeting-header-actions" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
             <label style={{ height: 36, display: 'inline-flex', alignItems: 'center', gap: 7, padding: '0 10px', border: `1px solid ${c.border}`, borderRadius: 9, background: '#fff', color: '#52698f', fontSize: 12 }}><MaterialSymbol name="folder" size={18} /><select aria-label={nt('meeting.t22')} value={folderId} disabled={creatingNote} onChange={(event) => setFolderId(event.target.value)} style={{ maxWidth: 140, background: 'transparent', border: 0, color: 'inherit', font: 'inherit' }}><option value="">{nt('meeting.t23')}</option>{folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}</select></label>
             <button type="button" className="action-icon" aria-label={nt('meeting.t24')} aria-pressed={pinned} disabled={creatingNote} data-tooltip={nt('meeting.t25')} onClick={() => setPinned((value) => !value)}><MaterialSymbol name="push_pin" size={19} color={pinned ? '#1467F5' : '#6078a1'} /></button>
-            <button type="button" className="action-icon" aria-label={nt('meeting.t26')} data-tooltip={nt('meeting.t27')} disabled={!showAudioNoteView || creatingNote} onClick={() => void createNoteFromJob(true)}><MaterialSymbol name="person_add" size={19} color="#6078a1" /></button>
             <details className="notes-more-actions" ref={actionsRef}><summary aria-label={nt('meeting.t28')}><MaterialSymbol name="more_horiz" size={19} color="#6078a1" /></summary><div className="notes-extra-actions">
               <button type="button" disabled={!showAudioNoteView || creatingNote} onClick={() => { actionsRef.current!.open = false; void createNoteFromJob() }}><MaterialSymbol name="description" size={18} />{nt('meeting.t29')}</button>
             </div></details>

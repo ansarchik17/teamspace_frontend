@@ -19,14 +19,12 @@ interface WorkspaceReferenceSidebarProps {
   collapsed: boolean
   onToggleCollapsed: () => void
   onNavigate?: () => void
-  messengerUnreadCount?: number
 }
 
 export default function WorkspaceReferenceSidebar({
   collapsed,
   onToggleCollapsed,
   onNavigate,
-  messengerUnreadCount = 0,
 }: WorkspaceReferenceSidebarProps) {
   const { t } = useTranslation(['shell', 'common'])
   const workspaceApps = useWorkspaceApps()
@@ -78,9 +76,8 @@ export default function WorkspaceReferenceSidebar({
         const isActive = id === 'alem-contact'
           ? isPeopleSectionPath(pathname)
           : (pathname === route || pathname.startsWith(`${route}/`)) && !hash
-        const isMessenger = id === 'chat'
-        const itemIsActive = isMessenger ? pathname.startsWith('/messenger') : id === 'meet' ? pathname.startsWith('/meet') : id === 'crm' ? pathname.startsWith('/crm') : isActive
-        return <button type="button" key={id} aria-label={label} title={label} className={'workspace-ref-sidebar__item' + (itemIsActive ? ' is-active' : '')} aria-current={itemIsActive ? 'page' : undefined} onClick={() => open(targetRoute)}><b className="workspace-ref-sidebar__icon"><Icon size={21} fill={id === 'workspace' && itemIsActive ? 'currentColor' : 'none'}><title>{label}</title></Icon>{isMessenger && messengerUnreadCount > 0 ? <em className="workspace-ref-sidebar__badge" aria-label={t('sidebar.unreadMessages', { count: messengerUnreadCount })}>{messengerUnreadCount > 99 ? '99+' : messengerUnreadCount}</em> : null}</b><span>{label}</span></button>
+        const itemIsActive = id === 'crm' ? pathname.startsWith('/crm') : isActive
+        return <button type="button" key={id} aria-label={label} title={label} className={'workspace-ref-sidebar__item' + (itemIsActive ? ' is-active' : '')} aria-current={itemIsActive ? 'page' : undefined} onClick={() => open(targetRoute)}><b className="workspace-ref-sidebar__icon"><Icon size={21} fill={id === 'workspace' && itemIsActive ? 'currentColor' : 'none'}><title>{label}</title></Icon></b><span>{label}</span></button>
       })}</div>
       <div className="workspace-ref-sidebar__divider" />
       <button type="button" className="workspace-ref-sidebar__item workspace-ref-sidebar__favorites-toggle" aria-label={t('sidebar.favorites')} aria-expanded={favoritesOpen} aria-controls="workspace-sidebar-favorites" onClick={() => setFavoritesOpen(value => !value)}><Bookmark size={21} strokeWidth={1.75} /><span>{t('sidebar.favorites')}</span><ChevronDown className={favoritesOpen ? 'is-open' : ''} size={15} /></button>

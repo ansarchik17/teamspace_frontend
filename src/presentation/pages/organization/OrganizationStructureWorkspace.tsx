@@ -1038,11 +1038,6 @@ export default function OrganizationStructureWorkspace({
                       <div className="truncate text-[14px] font-medium leading-5 text-[#17202E]">{selectedManagerName}</div>
                       <div className="mt-0.5 truncate text-[12px] leading-4 text-[#586174]">{selectedManager?.position || (selectedNode.isOrganization ? ot('structure.t32') : ot('structure.t51'))}</div>
                     </div>
-                    {selectedManager?.username ? (
-                      <button type="button" onClick={() => navigate(`/messenger/@${encodeURIComponent(selectedManager.username)}`)} className={`${AXIS_UI.iconButton}`} aria-label={ot('structure.writeTo', { name: selectedManagerName })} title={ot('structure.t52')}>
-                        <MaterialSymbol name="chat_bubble" size={16} color="currentColor" />
-                      </button>
-                    ) : null}
                     {canManageStructure && selectedUnit ? <button type="button" onClick={() => openEdit(selectedUnit)} className="text-[14px] font-medium text-[#2458D3] hover:underline">{ot('structure.t53')}</button> : null}
                   </div>
                 ) : <p className="mt-2 text-[14px] text-[#586174]">{ot('structure.t54')}</p>}

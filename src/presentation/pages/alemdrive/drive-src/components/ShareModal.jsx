@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Check, UserMinus, UserPlus, Link as LinkIcon, Copy, MessageCircle, ChevronLeft, ChevronRight, Link2Off, Loader2 } from 'lucide-react';
+import { X, Search, Check, UserMinus, UserPlus, Link as LinkIcon, Copy, ChevronLeft, ChevronRight, Link2Off, Loader2 } from 'lucide-react';
 import { useToast } from './Toast';
 import AppSelect from '../../../../../shared/ui/AppSelect';
 import { grantPermission, revokePermission, getUsersWithAccess, getUsersWithoutAccess, updatePermission, createShareLink, revokeShareLink, getMyPermission } from '../api/files';
-import SendToMessengerModal from './SendToMessengerModal';
 
 const ShareModal = ({ isOpen, onClose, file }) => {
     const isInheritedPermission = (permission) => Boolean(
@@ -22,7 +21,6 @@ const ShareModal = ({ isOpen, onClose, file }) => {
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [selectedRole, setSelectedRole] = useState('viewer');
     const [sharing, setSharing] = useState(false);
-    const [messengerOpen, setMessengerOpen] = useState(false);
     const { addToast } = useToast();
 
     const [userToRevoke, setUserToRevoke] = useState(null);
@@ -425,13 +423,6 @@ const ShareModal = ({ isOpen, onClose, file }) => {
                                         {creatingShareLink ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LinkIcon className="mr-2 h-4 w-4" />}
                                         Создать ссылку
                                     </button>
-                                    <button
-                                        onClick={() => setMessengerOpen(true)}
-                                        className="inline-flex h-9 items-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-sm font-medium text-indigo-600 shadow-sm transition-colors hover:bg-indigo-100"
-                                    >
-                                        <MessageCircle className="h-4 w-4 mr-2" />
-                                        Отправить в Messenger
-                                    </button>
                                 </div>
                             </div>
                             {createdShareLink ? (
@@ -473,11 +464,6 @@ const ShareModal = ({ isOpen, onClose, file }) => {
                             </div>
                         )}
 
-                        <SendToMessengerModal
-                            isOpen={messengerOpen}
-                            onClose={() => setMessengerOpen(false)}
-                            file={file}
-                        />
 
                         {/* Section: Who has access */}
                         <div>

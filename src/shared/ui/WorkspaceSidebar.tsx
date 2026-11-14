@@ -131,9 +131,6 @@ export default function WorkspaceSidebar({
                     if (item.id === 'board') {
                       navigate('/board')
                     }
-                    if (item.id === 'chat') {
-                      navigate('/messenger')
-                    }
                   }}
                   style={{
                     width: '100%',

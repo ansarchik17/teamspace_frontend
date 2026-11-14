@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, CalendarDays, FileText, House, LayoutGrid, MessageCircle, PanelsTopLeft, Sparkles, SquareCheck, StickyNote, Users, type LucideIcon } from 'lucide-react'
+import { BriefcaseBusiness, CalendarDays, FileText, House, LayoutGrid, PanelsTopLeft, Sparkles, SquareCheck, StickyNote, Users, type LucideIcon } from 'lucide-react'
 import type shell from '../i18n/locales/ru/shell.json'
 import EdoIcon from '../ui/icons/EdoIcon'
 
@@ -19,7 +19,6 @@ export const WORKSPACE_NAVIGATION: WorkspaceNavigationItem[] = [
   { id: 'workspace', labelKey: 'navigation.workspace', route: '/workspace', icon: 'home', Icon: House },
   { id: 'board', labelKey: 'navigation.board', route: '/board', icon: 'view_kanban', Icon: SquareCheck },
   { id: 'alemdrive', labelKey: 'navigation.alemdrive', route: '/drive', icon: 'folder_open', Icon: FileText },
-  { id: 'chat', labelKey: 'navigation.chat', route: '/messenger', icon: 'forum', Icon: MessageCircle },
   { id: 'alem-contact', labelKey: 'navigation.alem-contact', route: '/team-contact', icon: 'contacts', Icon: Users },
   { id: 'crm', labelKey: 'navigation.crm', route: '/crm', icon: 'business_center', Icon: BriefcaseBusiness },
   { id: 'teamstore', labelKey: 'navigation.teamstore', route: '/teamstore', icon: 'apps', Icon: LayoutGrid },

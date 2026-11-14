@@ -6,13 +6,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import type { Note, NoteFolder, NoteTagSummary } from '../../../domain/entities/Note'
 import { NoteVersionConflictError } from '../../../domain/entities/Note'
 import { HttpAlemAiRepository } from '../../../infrastructure/repositories/HttpAlemAiRepository'
-import { authorizedFetch } from '../../../infrastructure/http/authorizedFetch'
 import { HttpNoteRepository } from '../../../infrastructure/repositories/HttpNoteRepository'
 import { HttpProfileRepository } from '../../../infrastructure/repositories/HttpProfileRepository'
 import { HttpError } from '../../../infrastructure/http/HttpError'
 import { LocalStorageAuthSessionStore } from '../../../infrastructure/storage/LocalStorageAuthSessionStore'
 import { normalizeBackendAssetUrl } from '../../../infrastructure/http/normalizeBackendAssetUrl'
-import ChatPickerModal from '../../../presentation/components/messenger/ChatPickerModal'
 import AppToast from '../../../shared/ui/AppToast'
 import MaterialSymbol from '../../../shared/ui/MaterialSymbol'
 import AppModal from '../../../shared/ui/AppModal'
@@ -39,7 +37,7 @@ import NotesFiltersDropdown from './NotesFiltersDropdown'
 import { DEFAULT_NOTE_FILTERS, loadFilteredNotes, matchesNoteFilters, noteFilterLabels, type NoteFilters } from './noteFilters'
 import './notes-responsive.css'
 import NoteSlashMenu, { filterSlashItems, type SlashItem } from './NoteSlashMenu'
-import { Archive, Baseline, Bold, CalendarDays, ChartColumn, Check, ChevronDown, ChevronRight, CircleAlert, Clock3, Copy, Download, Ellipsis, FileText, Folder as FolderIcon, GripVertical, Heading1, History, Italic, ListChecks, LoaderCircle, Menu, MessageSquare, Pause, Pencil, Play, Plus, Search, Send, SlidersHorizontal, Sparkles, Square, Star, Strikethrough, Trash2, UserRound, UsersRound, Wand2 } from 'lucide-react'
+import { Archive, Baseline, Bold, CalendarDays, ChartColumn, Check, ChevronDown, ChevronRight, CircleAlert, Clock3, Copy, Download, Ellipsis, FileText, Folder as FolderIcon, GripVertical, Heading1, History, Italic, ListChecks, LoaderCircle, Menu, Pause, Pencil, Play, Plus, Search, SlidersHorizontal, Sparkles, Square, Star, Strikethrough, Trash2, UserRound, UsersRound, Wand2 } from 'lucide-react'
 import NotesVisualizationModal from './NotesVisualizationModal'
 import { parseReportVisualizations, type NoteVisualization } from './noteReportParser'
 import {
@@ -341,7 +339,6 @@ export default function NotesPage() {
   const [showListHint, setShowListHint] = useState(true)
   const showEditor = mode === 'meeting-ai' || view === 'note'
   const showList = mode !== 'meeting-ai' && (!showEditor || (!isMobile && !editorExpanded))
-  const [isChatPickerOpen, setIsChatPickerOpen] = useState(false)
   const [tablePicker, setTablePicker] = useState<{ x: number, y: number } | null>(null)
   const [isProofreading, setIsProofreading] = useState(false)
   const [isSummarizing, setIsSummarizing] = useState(false)
@@ -371,14 +368,7 @@ export default function NotesPage() {
     return () => document.removeEventListener('mousedown', close)
   }, [folderSelectOpen, noteFolderSelectOpen])
 
-  const chatApi = useCallback(
-    async (path: string, init: RequestInit = {}) => {
-      const response = await authorizedFetch(session, path, init)
-      const text = await response.text()
-      return text ? JSON.parse(text) : null
-    },
-    [session],
-  )
+
   const syncNotesUrl = useCallback((noteId?: string) => {
     const nextUrl = buildNotesUrl(noteId)
     const currentUrl = `${location.pathname}${location.search}`
@@ -871,39 +861,6 @@ export default function NotesPage() {
     }
   }
 
-  const handleShareToChat = async (chat: any) => {
-    if (!note || !canEditRef.current) return
-    setIsChatPickerOpen(false)
-    
-    const shareTitle = titleOf({ ...note, title, content_doc: doc })
-    const shareUrl = buildAbsoluteNoteUrl(note.id)
-    
-    const metadata = JSON.stringify({
-      type: 'note',
-      note_id: note.id,
-      note_title: shareTitle,
-      note_url: shareUrl,
-      note_summary: (textOf(doc) || note.content_text || note.content || textOf(note.content_doc)).slice(0, 320)
-    })
-
-    const endpoint = chat.type === 'group' || chat.type === 'channel' 
-      ? `/api/v1/${chat.type === 'group' ? 'groups' : 'channels'}/${chat.id}/messages`
-      : `/api/v1/conversations/${chat.id}/messages`
-
-    try {
-      await chatApi(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({
-          content: `${nt('page.sharedNote', { title: shareTitle })}\n${shareUrl}`,
-          type: 'text',
-          metadata
-        })
-      })
-      setShareToast({ message: nt('page.t024'), variant: 'success' })
-    } catch (e) {
-      setShareToast({ message: nt('page.t025'), variant: 'error' })
-    }
-  }
   const patchBlock = (id: string, next: Block) => setDoc((d) => ({ ...d, blocks: d.blocks.map((b) => b.id === id ? next : b) }))
   const removeBlock = (id: string) => setDoc((d) => {
     const nextBlocks = d.blocks.filter((b) => b.id !== id)
@@ -1718,7 +1675,6 @@ export default function NotesPage() {
                   repository={alemAiRepository}
                   notesRepo={notesRepo}
                   onNoteCreated={handleMeetingNoteCreated}
-                  onShareNote={(created) => { handleMeetingNoteCreated(created); setIsChatPickerOpen(true) }}
                   showError={showError}
                   showSuccess={showSuccess}
                 />
@@ -1752,14 +1708,12 @@ export default function NotesPage() {
                       <button type="button" aria-label={nt('page.t098')} title={nt('page.t098')} onClick={() => void shareNote()} disabled={isActionPending} style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px', marginLeft: 6, border: '1px solid #E3E6EA', borderRadius: 8, background: '#fff', color: '#111827', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                         <UsersRound size={15} strokeWidth={1.8} />{!isMobile && nt('page.t098')}
                       </button>
-                      <button type="button" className="action-icon" aria-label={nt('page.t099')} title={nt('page.t099')} onClick={() => setIsChatPickerOpen(true)} disabled={isActionPending}><MessageSquare size={18} strokeWidth={1.7} /></button>
                       <button type="button" className="action-icon" aria-label={note.is_pinned ? nt('page.t100') : nt('page.t101')} aria-pressed={note.is_pinned} onClick={() => void pin()} disabled={isActionPending}>
                         <Star size={18} strokeWidth={1.7} fill={note.is_pinned ? '#F5B301' : 'none'} color={note.is_pinned ? '#F5B301' : 'currentColor'} />
                       </button>
                       <details ref={noteActionsRef} className="notes-more-actions" style={{ position: 'relative' }} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.open = false } }}>
                         <summary className="action-icon" aria-label={nt('page.t102')}><Ellipsis size={18} /></summary>
                         <div className="notes-popover" style={{ right: 0, top: 38, width: 250 }}>
-                          <button type="button" disabled={isActionPending} onClick={() => { noteActionsRef.current!.open = false; setIsChatPickerOpen(true) }}><Send size={15} />{nt('page.t099')}</button>
                           <button type="button" disabled={isActionPending} onClick={() => { noteActionsRef.current!.open = false; setNoteFolderSelectOpen(true) }}><FolderIcon size={15} />{nt('page.t103')}</button>
                           <button type="button" disabled={isActionPending} onClick={() => { noteActionsRef.current!.open = false; void archiveNote().then(() => loadTree()) }}><Archive size={15} />{nt('page.t104')}</button>
                           <hr />
@@ -2196,12 +2150,6 @@ export default function NotesPage() {
             )}
           </AppModal>
         )}
-        <ChatPickerModal 
-          isOpen={isChatPickerOpen} 
-          onClose={() => setIsChatPickerOpen(false)} 
-          onSelect={handleShareToChat}
-          title={nt('page.t162')}
-        />
         {tablePicker && (
           <TableDimensionPicker
             x={tablePicker.x}

@@ -33,7 +33,6 @@ import {
     List,
     ListFilter,
     Loader2,
-    MessageCircle,
     MoreHorizontal,
     History,
     ChevronLeft,
@@ -55,7 +54,6 @@ import CreateFileModal from '../components/CreateFileModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import MoveItemModal from '../components/MoveItemModal';
 import RenameModal from '../components/RenameModal';
-import SendToMessengerModal from '../components/SendToMessengerModal';
 import DocumentDetailsPanel from '../components/DocumentDetailsPanel';
 import { generateTxt, generateDocx, generateXlsx, generatePptx } from '../utils/fileGenerators';
 import { canWriteFolder } from '../utils/folderAccess';
@@ -361,9 +359,6 @@ const Drive = ({ mode = 'my-drive' }) => {
         }
     });
 
-    // Messenger state
-    const [messengerModalOpen, setMessengerModalOpen] = useState(false);
-    const [fileToSendMessage, setFileToSendMessage] = useState(null);
     const [isSubmittingFolder, setIsSubmittingFolder] = useState(false);
 
     // Bulk selection state
@@ -790,11 +785,6 @@ const Drive = ({ mode = 'my-drive' }) => {
     const handleShareClick = (file) => {
         setFileToShare(file);
         setShareModalOpen(true);
-    };
-
-    const handleSendToMessengerClick = (file) => {
-        setFileToSendMessage(file);
-        setMessengerModalOpen(true);
     };
 
     const handleCopyClick = (item) => {
@@ -1461,7 +1451,6 @@ const Drive = ({ mode = 'my-drive' }) => {
             download: handleDownload,
             favorite: handleFavoriteToggle,
             copy: handleCopyClick,
-            messenger: handleSendToMessengerClick,
             share: handleShareClick,
             rename: handleRenameClick,
             move: handleMoveClick,
@@ -1655,9 +1644,6 @@ const Drive = ({ mode = 'my-drive' }) => {
                                         {(close) => (
                                             <>
                                                 <MenuItem icon={Copy} label={t('actions.copy')} onClick={() => { close(); handleBulkCopy(); }} />
-                                                {selectedSingle && !isFolderItem(selectedSingle) ? (
-                                                    <MenuItem icon={MessageCircle} label={t('actions.sendToChat')} onClick={() => { close(); handleSendToMessengerClick(selectedSingle); }} />
-                                                ) : null}
                                                 <MenuItem
                                                     icon={SquareCheck}
                                                     label={allVisibleSelected ? t('actions.deselect') : t('actions.selectAll')}
@@ -1859,11 +1845,6 @@ const Drive = ({ mode = 'my-drive' }) => {
                 file={fileToShare}
             />
 
-            <SendToMessengerModal
-                isOpen={messengerModalOpen}
-                onClose={() => setMessengerModalOpen(false)}
-                file={fileToSendMessage}
-            />
 
             <ImagePreviewModal
                 isOpen={previewModalOpen}

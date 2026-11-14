@@ -1,16 +1,21 @@
-import mermaid from 'mermaid';
-
-let initialized = false;
+let mermaidPromise;
 
 const ensureMermaid = () => {
-    if (initialized) return;
-    mermaid.initialize({
-        startOnLoad: false,
-        securityLevel: 'loose',
-        theme: 'neutral',
-        fontFamily: 'inherit',
-    });
-    initialized = true;
+    if (!mermaidPromise) {
+        mermaidPromise = import('mermaid').then(({ default: mermaid }) => {
+            mermaid.initialize({
+                startOnLoad: false,
+                securityLevel: 'loose',
+                theme: 'neutral',
+                fontFamily: 'inherit',
+            });
+            return mermaid;
+        }).catch((error) => {
+            mermaidPromise = undefined;
+            throw error;
+        });
+    }
+    return mermaidPromise;
 };
 
 /**
@@ -23,7 +28,7 @@ export async function renderMermaidSvg(chartText) {
         throw new Error('Пустая диаграмма');
     }
 
-    ensureMermaid();
+    const mermaid = await ensureMermaid();
     const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
     const { svg } = await mermaid.render(id, text);
     return svg;

@@ -1,5 +1,3 @@
-import PptxGenJS from 'pptxgenjs';
-import ExcelJS from 'exceljs';
 import { citationFooter, getPresentationTheme, plainSlideText, slideBullets, slideLayout, slideParagraphs } from './presentationDesign';
 
 const SLIDE_W = 10;
@@ -115,6 +113,7 @@ export function stripMarkdownForPptx(md) {
  * @returns {Promise<Blob>}
  */
 export async function buildPresentationPptxBlob(slides, filename, themeId) {
+    const { default: PptxGenJS } = await import('pptxgenjs');
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
     pptx.author = 'UniteSpace';
@@ -612,6 +611,7 @@ function normalizedToPptxTableRows(normalized) {
  * @returns {Promise<Blob>}
  */
 export async function buildChartPptxBlob(normalized) {
+    const { default: PptxGenJS } = await import('pptxgenjs');
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
     pptx.author = 'UniteSpace';
@@ -703,6 +703,7 @@ export async function exportChartToPptx(normalized, filename = 'grafik.pptx') {
  * @returns {Promise<Blob>}
  */
 export async function buildChartXlsxBlob(normalized) {
+    const { default: ExcelJS } = await import('exceljs');
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Данные', {
         views: [{ state: 'frozen', ySplit: 1 }],

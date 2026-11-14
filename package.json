@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:design": "node scripts/preview-teamspace-design.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/check-production-bundles.mjs",
     "typecheck": "tsc -b",
     "build:bundle": "vite build",
     "test": "node --test tests/*.test.mjs tests/telegram/*.test.cjs",

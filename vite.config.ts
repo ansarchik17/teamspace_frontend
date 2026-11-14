@@ -1,6 +1,7 @@
 ﻿import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { excelJsBrowserVm } from './build/exceljsBrowserVm'
 
 /** EPS bundle hardcodes `/api` and `/eps.svg` вЂ” patch at runtime before bundle loads. */
 const EPS_RUNTIME_PATCH = `<script>(function(){function g(v){return v==="/eps.svg"?"/web/eps-remote/eps.svg":v}var f=window.fetch.bind(window);window.fetch=function(i,n){var u=typeof i==="string"?i:i instanceof URL?i.href:i.url;try{var p=u.startsWith("http")?new URL(u).pathname:u;if(p.indexOf("/api/")===0||p==="/api"){var r="/web/eps-remote"+p+(u.startsWith("http")?new URL(u).search:"");if(typeof i==="string")return f(r,n);if(i instanceof Request)return f(new Request(r,i),n);return f(r,n)}}catch(e){}return f(i,n)};var s=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(n==="src")v=g(v);return s.call(this,n,v)};var d=Object.getOwnPropertyDescriptor(HTMLImageElement.prototype,"src");d&&d.set&&Object.defineProperty(HTMLImageElement.prototype,"src",{get:d.get,set:function(v){d.set.call(this,g(v))},configurable:!0,enumerable:d.enumerable})})();</script>`
@@ -30,28 +31,41 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/web/',
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), excelJsBrowserVm()],
     optimizeDeps: {
       include: ['mermaid'],
     },
     build: {
+      manifest: true,
+      // ExcelJS and the HEIC decoder are indivisible, prebuilt modules loaded
+      // only on demand. The build separately enforces a 600 kB initial JS budget.
+      chunkSizeWarningLimit: 1500,
       rolldownOptions: {
+        preserveEntrySignatures: false,
         output: {
           // Manual vendor groups can otherwise execute a React CJS wrapper before
           // its dependency is initialized, producing a blank production page.
           strictExecutionOrder: true,
           codeSplitting: {
+            includeDependenciesRecursively: false,
             groups: [
               {
-                name: 'mermaid-vendor',
-                test: /node_modules[\\/](?:mermaid|@mermaid-js)[\\/]/,
+                name: 'initial-vendor',
+                test: /node_modules[\\/]/,
+                tags: ['$initial'],
+                maxSize: 250_000,
                 priority: 20,
               },
               {
-                name: 'large-vendor',
+                name: (id) => {
+                  const parts = id.replaceAll('\\', '/').split('/node_modules/').at(-1)?.split('/')
+                  if (!parts) return null
+                  const name = parts[0].startsWith('@') ? `${parts[0]}-${parts[1]}` : parts[0]
+                  return `vendor-${name.replaceAll('@', '')}`
+                },
                 test: /node_modules[\\/]/,
                 minSize: 20_000,
-                maxSize: 800_000,
+                maxSize: 250_000,
                 priority: 10,
               },
             ],

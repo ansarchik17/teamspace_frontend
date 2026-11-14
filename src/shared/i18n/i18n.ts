@@ -8,8 +8,14 @@ import {
   type AppLanguage,
 } from './config'
 import { detectInitialLanguage, writeStoredLanguage } from './storage'
+import ruShell from './locales/ru/shell.json'
 
-const catalogLoaders = import.meta.glob<Record<string, unknown>>('./locales/*/*.json', { import: 'default' })
+// The legacy app catalog already uses ru/shell synchronously. Reuse that
+// module instead of also requesting a dynamic chunk for the same JSON file.
+const catalogLoaders: Record<string, () => Promise<Record<string, unknown>>> = {
+  ...import.meta.glob<Record<string, unknown>>(['./locales/*/*.json', '!./locales/ru/shell.json'], { import: 'default' }),
+  './locales/ru/shell.json': () => Promise.resolve(ruShell),
+}
 
 const NAMESPACES = [
   ...new Set(

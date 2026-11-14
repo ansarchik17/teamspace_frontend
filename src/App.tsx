@@ -1,52 +1,55 @@
-import PasswordRecoveryPage from './presentation/pages/auth/PasswordRecoveryPage'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import AppLoader from './shared/ui/AppLoader'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { LEGACY_TEAM_ROUTES, toTeamPath } from './shared/config/teamBranding'
-import LoginPage from './presentation/pages/auth/LoginPage'
-import InvitationJoinPage from './presentation/pages/auth/InvitationJoinPage'
-import LogoutCompletePage from './presentation/pages/auth/LogoutCompletePage'
-import AuthCallbackPage from './presentation/pages/auth/AuthCallbackPage'
-import WorkspaceLayout from './presentation/pages/dashboard/WorkspaceLayout'
-import MessengerPage from './presentation/pages/messenger/MessengerPage'
 import CrmMessengerPage, { CrmMessengerRedirect } from './presentation/pages/growy/CrmMessengerPage'
-import WorkspacePage from './presentation/pages/workspace/WorkspacePage'
-import ContactsSyncPage from './presentation/pages/organization/ContactsSyncPage'
-import OrganizationAccessPage from './presentation/pages/organization/OrganizationAccessPage'
-import OrganizationStructurePage from './presentation/pages/organization/OrganizationStructurePage'
-import PlatformStructureEntryPage from './presentation/pages/platform/PlatformStructureEntryPage'
-import PlatformOrganizationsPage from './presentation/pages/platform/PlatformOrganizationsPage'
-import PlatformOrganizationStructurePage from './presentation/pages/platform/PlatformOrganizationStructurePage'
-import AlemStorePage from './presentation/pages/alemstore/AlemStorePage'
-import CrmPage from './presentation/pages/growy/CrmPage'
-import WhatsAppManagementPage from './presentation/pages/growy/WhatsAppManagementPage'
-import MetaBoardPage from './presentation/pages/growy/MetaBoardPage'
-import CrmSettingsPage from './presentation/pages/growy/CrmSettingsPage'
-import CrmDataPage from './presentation/pages/growy/CrmDataPage'
-import CrmIntegrationsPage from './presentation/pages/growy/CrmIntegrationsPage'
-import WhatsAppPage from './presentation/pages/growy/WhatsAppPage'
-import TelegramPage from './presentation/pages/growy/TelegramPage'
-import ProfilePage from './presentation/pages/profile/ProfilePage'
-import CalendarPage from './presentation/pages/calendar/CalendarPage'
-import MeetPage from './presentation/pages/meet/MeetPage'
-import MeetCallPage from './presentation/pages/meet/MeetCallPage'
-import CalendarCallPage from './presentation/pages/calendar/CalendarCallPage'
-import BoardPage from './presentation/pages/board/BoardPage'
-import AlemAiPage from './presentation/pages/alemai/AlemAiPage'
-import AlemRagPage from './presentation/pages/alemrag'
-import AlemDrivePage from './presentation/pages/alemdrive/AlemDrivePage'
-import NotesPage from './presentation/pages/notes/NotesPage'
-import NewsPage from './presentation/pages/news/NewsPage'
-import WhiteboardPage from './presentation/pages/whiteboard/WhiteboardPage'
-import AlemContactPage from './presentation/pages/alem-contact/AlemContactPage'
-import EpsPage from './presentation/pages/eps/EpsPage'
-import SenimDeskPage from './presentation/pages/senimdesk/SenimDeskPage'
-import IFormPage from './presentation/pages/iform/IFormPage'
 import ProtectedRoute from './presentation/routes/ProtectedRoute'
 import PublicOnlyRoute from './presentation/routes/PublicOnlyRoute'
-import DesignSystemPage from './presentation/pages/design/DesignSystemPage'
-import CompanyAdministrationPage from './presentation/pages/organization/CompanyAdministrationPage'
-import PlatformAdministrationPage from './presentation/pages/platform/PlatformAdministrationPage'
-import PlatformSecurityAuditPage from './presentation/pages/platform/PlatformSecurityAuditPage'
+
+const PasswordRecoveryPage = lazy(() => import('./presentation/pages/auth/PasswordRecoveryPage'))
+const LoginPage = lazy(() => import('./presentation/pages/auth/LoginPage'))
+const InvitationJoinPage = lazy(() => import('./presentation/pages/auth/InvitationJoinPage'))
+const LogoutCompletePage = lazy(() => import('./presentation/pages/auth/LogoutCompletePage'))
+const AuthCallbackPage = lazy(() => import('./presentation/pages/auth/AuthCallbackPage'))
+const WorkspaceLayout = lazy(() => import('./presentation/pages/dashboard/WorkspaceLayout'))
+const MessengerPage = lazy(() => import('./presentation/pages/messenger/MessengerPage'))
+const WorkspacePage = lazy(() => import('./presentation/pages/workspace/WorkspacePage'))
+const ContactsSyncPage = lazy(() => import('./presentation/pages/organization/ContactsSyncPage'))
+const OrganizationAccessPage = lazy(() => import('./presentation/pages/organization/OrganizationAccessPage'))
+const OrganizationStructurePage = lazy(() => import('./presentation/pages/organization/OrganizationStructurePage'))
+const PlatformStructureEntryPage = lazy(() => import('./presentation/pages/platform/PlatformStructureEntryPage'))
+const PlatformOrganizationsPage = lazy(() => import('./presentation/pages/platform/PlatformOrganizationsPage'))
+const PlatformOrganizationStructurePage = lazy(() => import('./presentation/pages/platform/PlatformOrganizationStructurePage'))
+const AlemStorePage = lazy(() => import('./presentation/pages/alemstore/AlemStorePage'))
+const CrmPage = lazy(() => import('./presentation/pages/growy/CrmPage'))
+const WhatsAppManagementPage = lazy(() => import('./presentation/pages/growy/WhatsAppManagementPage'))
+const MetaBoardPage = lazy(() => import('./presentation/pages/growy/MetaBoardPage'))
+const CrmSettingsPage = lazy(() => import('./presentation/pages/growy/CrmSettingsPage'))
+const CrmDataPage = lazy(() => import('./presentation/pages/growy/CrmDataPage'))
+const CrmIntegrationsPage = lazy(() => import('./presentation/pages/growy/CrmIntegrationsPage'))
+const WhatsAppPage = lazy(() => import('./presentation/pages/growy/WhatsAppPage'))
+const TelegramPage = lazy(() => import('./presentation/pages/growy/TelegramPage'))
+const ProfilePage = lazy(() => import('./presentation/pages/profile/ProfilePage'))
+const CalendarPage = lazy(() => import('./presentation/pages/calendar/CalendarPage'))
+const MeetPage = lazy(() => import('./presentation/pages/meet/MeetPage'))
+const MeetCallPage = lazy(() => import('./presentation/pages/meet/MeetCallPage'))
+const CalendarCallPage = lazy(() => import('./presentation/pages/calendar/CalendarCallPage'))
+const BoardPage = lazy(() => import('./presentation/pages/board/BoardPage'))
+const AlemAiPage = lazy(() => import('./presentation/pages/alemai/AlemAiPage'))
+const AlemRagPage = lazy(() => import('./presentation/pages/alemrag'))
+const AlemDrivePage = lazy(() => import('./presentation/pages/alemdrive/AlemDrivePage'))
+const NotesPage = lazy(() => import('./presentation/pages/notes/NotesPage'))
+const NewsPage = lazy(() => import('./presentation/pages/news/NewsPage'))
+const WhiteboardPage = lazy(() => import('./presentation/pages/whiteboard/WhiteboardPage'))
+const AlemContactPage = lazy(() => import('./presentation/pages/alem-contact/AlemContactPage'))
+const EpsPage = lazy(() => import('./presentation/pages/eps/EpsPage'))
+const SenimDeskPage = lazy(() => import('./presentation/pages/senimdesk/SenimDeskPage'))
+const IFormPage = lazy(() => import('./presentation/pages/iform/IFormPage'))
+const DesignSystemPage = lazy(() => import('./presentation/pages/design/DesignSystemPage'))
+const CompanyAdministrationPage = lazy(() => import('./presentation/pages/organization/CompanyAdministrationPage'))
+const PlatformAdministrationPage = lazy(() => import('./presentation/pages/platform/PlatformAdministrationPage'))
+const PlatformSecurityAuditPage = lazy(() => import('./presentation/pages/platform/PlatformSecurityAuditPage'))
 
 function LegacyTeamRedirect() {
   const location = useLocation()
@@ -54,6 +57,7 @@ function LegacyTeamRedirect() {
 }
 
 export default function App() {
+  const { t } = useTranslation('common')
   useEffect(() => {
     const enhanceIconButton = (button: HTMLButtonElement) => {
       // data-no-tooltip — явный отказ от глобальной подсказки (например, у кнопок-меню)
@@ -108,6 +112,7 @@ export default function App() {
   return (
     <BrowserRouter basename="/web/">
 
+      <Suspense fallback={<AppLoader label={t('status.loading')} />}>
       <Routes>
         {import.meta.env.DEV && <Route path="/design-system" element={<DesignSystemPage />} />}
         {Object.keys(LEGACY_TEAM_ROUTES).map((path) => (
@@ -185,6 +190,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

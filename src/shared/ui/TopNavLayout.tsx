@@ -1,5 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { Suspense, useEffect, useRef, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import AppLoader from './AppLoader'
 
 interface TopNavLayoutProps {
   topNav: ReactNode
@@ -16,6 +18,7 @@ export default function TopNavLayout({
   fontFamily = 'var(--ts-font)',
   outletContext,
 }: TopNavLayoutProps) {
+  const { t } = useTranslation('common')
   const { pathname } = useLocation()
   const section = sectionOf(pathname)
   const pageRef = useRef<HTMLDivElement>(null)
@@ -46,7 +49,9 @@ export default function TopNavLayout({
           остаётся с фиксированной высотой (100vh − nav), появляется стандартный вертикальный скролл.
         */}
         <div ref={pageRef} data-section={section} className="ts-section flex min-h-0 min-w-0 flex-1 flex-col overflow-auto overscroll-y-contain">
-          <Outlet context={outletContext} />
+          <Suspense fallback={<AppLoader label={t('status.loading')} />}>
+            <Outlet context={outletContext} />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState, useRef } from 'react'
+import { lazy, type ReactNode, useEffect, useMemo, useState, useRef } from 'react'
 
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import type { AuthSessionStore } from '../../domain/services/AuthSessionStore'
@@ -7,8 +7,9 @@ import AppLoader from '../../shared/ui/AppLoader'
 import { hideAppSplash } from '../../shared/ui/axisSplash'
 import { isLocalDevHost } from '../../shared/auth/isLocalDevHost'
 import { handoffToTenantWorkspace, isTenantWorkspaceHost } from '../../shared/auth/tenantWorkspace'
-import MeetGuestPage from '../pages/meet/MeetGuestPage'
-import OnboardingFirstLoginGate from '../components/profile/OnboardingFirstLoginGate'
+
+const MeetGuestPage = lazy(() => import('../pages/meet/MeetGuestPage'))
+const OnboardingFirstLoginGate = lazy(() => import('../components/profile/OnboardingFirstLoginGate'))
 
 interface ProtectedRouteProps {
   children?: ReactNode

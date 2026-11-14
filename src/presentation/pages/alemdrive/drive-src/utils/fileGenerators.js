@@ -1,13 +1,10 @@
-import { Document, Packer, Paragraph, TextRun } from "docx";
-import ExcelJS from "exceljs";
-import PptxGenJS from "pptxgenjs";
-
 export const generateTxt = (content = "") => {
     const blob = new Blob([content], { type: "text/plain" });
     return blob;
 };
 
 export const generateDocx = async (content = "") => {
+    const { Document, Packer, Paragraph, TextRun } = await import('docx');
     const doc = new Document({
         sections: [
             {
@@ -28,6 +25,7 @@ export const generateDocx = async (content = "") => {
 };
 
 export const generateXlsx = async (content = "") => {
+    const { default: ExcelJS } = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sheet 1");
 
@@ -42,6 +40,7 @@ export const generateXlsx = async (content = "") => {
 };
 
 export const generatePptx = async (content = "") => {
+    const { default: PptxGenJS } = await import('pptxgenjs');
     const pptx = new PptxGenJS();
     const slide = pptx.addSlide();
     slide.addText(content || "Hello World", { x: 1, y: 1, fontSize: 18 });

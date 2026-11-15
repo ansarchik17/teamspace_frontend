@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build && node scripts/check-production-bundles.mjs",
     "typecheck": "tsc -b",
     "build:bundle": "vite build",
-    "test": "node --test tests/*.test.mjs tests/telegram/*.test.cjs",
+    "test": "node --test tests/*.test.mjs",
     "test:production-build": "node scripts/test-production-build.mjs",
     "lint": "eslint .",
     "i18n:check": "node scripts/check-i18n.mjs",

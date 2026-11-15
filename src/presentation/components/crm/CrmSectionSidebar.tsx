@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { BriefcaseBusiness, ChevronDown, Contact, Database, Layers, MessageCircle, MessagesSquare, Plug, Plus, Send, Settings, SquareCheck, UserPlus, type LucideIcon } from 'lucide-react'
+import { BriefcaseBusiness, ChevronDown, Contact, Database, Layers, MessageCircle, MessagesSquare, Plug, Plus, Settings, SquareCheck, UserPlus, type LucideIcon } from 'lucide-react'
 import FloatingMenu, { floatingMenuItemClass } from '../../../shared/ui/FloatingMenu'
 
-type NavKey = 'leads' | 'contacts' | 'deals' | 'tasks' | 'messenger' | 'whatsapp' | 'telegram' | 'leadStages' | 'data' | 'integrations' | 'settings'
+type NavKey = 'leads' | 'contacts' | 'deals' | 'tasks' | 'messenger' | 'whatsapp' | 'leadStages' | 'data' | 'integrations' | 'settings'
 type CreateKey = 'leads' | 'contacts' | 'deals' | 'tasks'
 
 interface NavItem {
@@ -31,7 +31,6 @@ const SETTINGS: NavItem[] = [
 
 const CHANNELS: NavItem[] = [
   { key: 'whatsapp', label: 'whatsapp', to: '/crm/messenger/whatsapp', Icon: MessageCircle },
-  { key: 'telegram', label: 'telegram', to: '/crm/messenger/telegram', Icon: Send },
 ]
 
 const CREATE: { resource: CreateKey; Icon: LucideIcon }[] = [
@@ -42,7 +41,6 @@ const CREATE: { resource: CreateKey; Icon: LucideIcon }[] = [
 ]
 
 const activeKey = (pathname: string, search: string) => {
-  if (pathname.startsWith('/crm/messenger/telegram')) return 'telegram'
   if (pathname.startsWith('/crm/messenger')) return 'whatsapp'
   if (pathname.startsWith('/crm/data')) return 'data'
   if (pathname.startsWith('/crm/integrations') || pathname.startsWith('/crm/meta')) return 'integrations'
@@ -56,7 +54,7 @@ export default function CrmSectionSidebar() {
   const { t } = useTranslation('shell')
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const active = activeKey(pathname, search)
-  const inMessenger = active === 'whatsapp' || active === 'telegram'
+  const inMessenger = active === 'whatsapp'
   const [messengerOpen, setMessengerOpen] = useState(inMessenger)
   const [lastPath, setLastPath] = useState(pathname)
   if (lastPath !== pathname) {

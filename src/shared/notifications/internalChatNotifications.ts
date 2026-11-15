@@ -8,7 +8,7 @@ export function isInternalChatNotification(item: { type?: unknown; actionUrl?: u
   if (typeof item.actionUrl === 'string') {
     try {
       const url = new URL(item.actionUrl, 'https://unitespace.invalid')
-      if (/^\/(?:web\/)?messenger(?:\/|$)/.test(url.pathname)) return true
+      if (/^\/(?:web\/)?(?:messenger|telegram|crm\/messenger\/telegram)(?:\/|$)/.test(url.pathname)) return true
       if (/^\/(?:web\/)?crm\/messenger(?:\/|$)/.test(url.pathname)) return false
     } catch {
       // A malformed destination must not hide unrelated system notifications.

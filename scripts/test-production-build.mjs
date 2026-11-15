@@ -14,6 +14,8 @@ const loginHeading = authRu.login.title
 await stat(resolve(dist, 'index.html'))
 const manifest = JSON.parse(await readFile(resolve(dist, '.vite/manifest.json'), 'utf8'))
 assert.equal(Object.keys(manifest).some(key => /presentation\/pages\/messenger\//.test(key)), false, 'Removed messenger must not ship a page chunk')
+assert.equal(Object.keys(manifest).some(key => key.endsWith('/TelegramPage.tsx')), false, 'Removed Telegram must not ship a page chunk')
+await assert.rejects(stat(resolve(dist, 'growy-telegram')), { code: 'ENOENT' }, 'Removed Telegram assets must not ship')
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2' }
 const server = createServer(async (req, res) => {
   try {
@@ -56,7 +58,7 @@ try {
     assert.deepEqual(errors, [], 'Production bundle raised a JavaScript error')
   }
   await open('/web/login', loginHeading)
-  for (const path of ['/web/messenger', '/web/messenger/@saved-user', '/web/@saved-user']) {
+  for (const path of ['/web/messenger', '/web/messenger/@saved-user', '/web/@saved-user', '/web/telegram', '/web/crm/messenger/telegram']) {
     await page.goto(origin + path)
     await page.waitForURL(origin + '/web/login')
     await page.getByRole('heading', { name: loginHeading, exact: true }).waitFor({ state: 'visible' })

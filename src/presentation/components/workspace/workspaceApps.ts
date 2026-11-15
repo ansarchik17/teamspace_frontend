@@ -24,7 +24,6 @@ export type WorkspaceAppId =
   | 'iform'
   | 'crm'
   | 'whatsapp'
-  | 'telegram'
   | 'edo'
   | 'senimdesk'
   | 'beketos'

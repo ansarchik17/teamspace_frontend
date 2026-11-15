@@ -28,7 +28,6 @@ const CrmSettingsPage = lazy(() => import('./presentation/pages/growy/CrmSetting
 const CrmDataPage = lazy(() => import('./presentation/pages/growy/CrmDataPage'))
 const CrmIntegrationsPage = lazy(() => import('./presentation/pages/growy/CrmIntegrationsPage'))
 const WhatsAppPage = lazy(() => import('./presentation/pages/growy/WhatsAppPage'))
-const TelegramPage = lazy(() => import('./presentation/pages/growy/TelegramPage'))
 const ProfilePage = lazy(() => import('./presentation/pages/profile/ProfilePage'))
 const CalendarPage = lazy(() => import('./presentation/pages/calendar/CalendarPage'))
 const MeetPage = lazy(() => import('./presentation/pages/meet/MeetPage'))
@@ -176,11 +175,11 @@ export default function App() {
               <Route index element={<Navigate to="whatsapp" replace />} />
               <Route path="whatsapp/manage" element={<WhatsAppManagementPage />} />
               <Route path="whatsapp" element={<WhatsAppPage />} />
-              <Route path="telegram" element={<TelegramPage />} />
             </Route>
             <Route path="/whatsapp/manage" element={<CrmMessengerRedirect channel="whatsapp/manage" />} />
             <Route path="/whatsapp" element={<CrmMessengerRedirect channel="whatsapp" />} />
-            <Route path="/telegram" element={<CrmMessengerRedirect channel="telegram" />} />
+            <Route path="/telegram/*" element={<Navigate to="/crm" replace />} />
+            <Route path="/crm/messenger/telegram/*" element={<Navigate to="/crm" replace />} />
           </Route>
         </Route>
 

@@ -154,7 +154,7 @@ export default function CallOverlay({
                   inset: -8,
                   borderRadius: '50%',
                   background: 'rgba(125, 162, 255, 0.12)',
-                  animation: 'telegram-call-pulse 2s ease-out infinite',
+                  animation: 'call-ring-pulse 2s ease-out infinite',
                 }}
               />
               <div
@@ -202,7 +202,7 @@ export default function CallOverlay({
           </div>
 
           <style>{`
-            @keyframes telegram-call-pulse {
+            @keyframes call-ring-pulse {
               0% { transform: scale(1); opacity: 0.8; }
               100% { transform: scale(1.6); opacity: 0; }
             }

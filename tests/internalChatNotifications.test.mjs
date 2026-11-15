@@ -13,7 +13,7 @@ test('native chat events and old messenger destinations are hidden', () => {
   for (const type of ['new_message', 'chat_message', 'message_created', 'message_deleted', 'chat_hidden', 'new_channel_post', 'typing', 'unread_count_updated', 'read_receipt']) {
     assert.equal(isInternalChatNotification({ type }), true, type)
   }
-  for (const actionUrl of ['/messenger', '/messenger/@old-user', '/web/messenger?chat=old', 'https://company.example/web/messenger/old']) {
+  for (const actionUrl of ['/messenger', '/messenger/@old-user', '/web/messenger?chat=old', 'https://company.example/web/messenger/old', '/telegram', '/web/telegram/account', '/crm/messenger/telegram', '/web/crm/messenger/telegram/account']) {
     assert.equal(isInternalChatNotification({ type: 'notification', actionUrl }), true, actionUrl)
   }
 })
@@ -26,8 +26,8 @@ test('task, calendar, document and security notifications remain available', () 
   assert.equal(isInternalChatNotification({}), false)
 })
 
-test('separate CRM channels are preserved even when their notification type is new_message', () => {
-  for (const actionUrl of ['/crm/messenger/whatsapp', '/web/crm/messenger/telegram']) {
+test('WhatsApp notifications are preserved even when their notification type is new_message', () => {
+  for (const actionUrl of ['/crm/messenger/whatsapp', '/web/crm/messenger/whatsapp/manage']) {
     assert.equal(isInternalChatNotification({ type: 'new_message', actionUrl }), false)
   }
 })

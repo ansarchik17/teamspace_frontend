@@ -80,11 +80,6 @@ export class HttpGrowyPlatformRepository {
     const response = await authorizedFetch(this.sessionStore, BASE + path, init, { preserveIntegrationSession: true })
     return response.status === 204 ? undefined as T : response.json() as Promise<T>
   }
-  telegramResponse(path: string, init: RequestInit = {}) {
-    return authorizedFetch(this.sessionStore, BASE + path, init, {
-      preserveIntegrationSession: true, returnErrorResponse: true,
-    })
-  }
   async collection<T>(path: string, page = 1, signal?: AbortSignal): Promise<Page<T>> {
     const query = new URLSearchParams({ page: String(page), page_size: '25' })
     const data = await this.request<T[] | { results: T[]; count: number; next?: string | null; page_size?: number }>(`${path}${path.includes('?') ? '&' : '?'}${query}`, { signal })

@@ -20,10 +20,6 @@ import { createCalendarController } from '../../calendar/createCalendarControlle
 import { createBoardController } from '../../board/createBoardController'
 import type { CalendarEventViewModel } from '../../view-models/CalendarViewModel'
 import type { WorkspaceGoalItem } from '../../components/workspace/WorkspaceDashboard'
-import {
-  HttpGrowyRepository,
-  type UnfinishedTrainingProgram,
-} from '../../../infrastructure/repositories/HttpGrowyRepository'
 import { LocalStorageAuthSessionStore } from '../../../infrastructure/storage/LocalStorageAuthSessionStore'
 import { MAIL_APP_URL, openWorkspaceMail } from '../../../shared/config/mailConfig'
 import type { EpsUnreadMailbox } from '../../../infrastructure/eps/epsMail'
@@ -521,7 +517,6 @@ export default function WorkspacePage() {
   const [hubData, setHubData] = useState<HomeDashboardViewModel>(getDefaultHomeDashboardViewModel())
   const [calendarEvents, setCalendarEvents] = useState<CalendarEventViewModel[]>([])
   const [workspaceGoals, setWorkspaceGoals] = useState<WorkspaceGoalItem[]>([])
-  const [unfinishedTrainingPrograms, setUnfinishedTrainingPrograms] = useState<UnfinishedTrainingProgram[]>([])
   const [epsUnreadMailbox, setEpsUnreadMailbox] = useState<EpsUnreadMailbox | null>(null)
   const [showEpsApp, setShowEpsApp] = useState(false)
   const [userName, setUserName] = useState('Пользователь')
@@ -543,10 +538,6 @@ export default function WorkspacePage() {
   const { calendarController } = useMemo(() => createCalendarController(), [])
   const { boardController } = useMemo(() => createBoardController(), [])
   const { authController } = useMemo(() => createAuthController(), [])
-  const growyRepository = useMemo(
-    () => new HttpGrowyRepository(new LocalStorageAuthSessionStore()),
-    [],
-  )
 
   useEffect(() => {
     if (!toast) return
@@ -581,13 +572,6 @@ export default function WorkspacePage() {
             return [] as WorkspaceGoalItem[]
           })
 
-        const growyPromise = growyRepository
-          .getMyUnfinishedPrograms()
-          .catch((err) => {
-            console.error('Failed to load unfinished training programs', err)
-            return [] as UnfinishedTrainingProgram[]
-          })
-
         const epsUnreadPromise = authPromise.then((authModel) => {
           if (authModel?.name?.trim()) {
             setUserName(authModel.name.trim())
@@ -599,13 +583,12 @@ export default function WorkspacePage() {
           return null
         })
 
-        const [workspaceViewModel, homeViewModel, monthlyEvents, goals, unfinishedPrograms, epsUnread] =
+        const [workspaceViewModel, homeViewModel, monthlyEvents, goals, epsUnread] =
           await Promise.all([
           workspaceFavoritesController.load(options),
           homeDashboardController.load(options),
           calendarPromise,
           goalsPromise,
-          growyPromise,
           epsUnreadPromise,
           authPromise,
         ])
@@ -622,7 +605,6 @@ export default function WorkspacePage() {
         setHubData(homeViewModel)
         setCalendarEvents(monthlyEvents)
         setWorkspaceGoals(goals)
-        setUnfinishedTrainingPrograms(unfinishedPrograms)
         setEpsUnreadMailbox(epsUnread)
       } catch (error) {
         setError(getErrorMessage(error, 'Не удалось загрузить список приложений. Попробуйте еще раз.'))
@@ -630,7 +612,7 @@ export default function WorkspacePage() {
         setIsLoading(false)
       }
     },
-    [workspaceFavoritesController, homeDashboardController, calendarController, boardController, growyRepository, authController, removedIds],
+    [workspaceFavoritesController, homeDashboardController, calendarController, boardController, authController, removedIds],
   )
 
   useEffect(() => {
@@ -1034,7 +1016,6 @@ export default function WorkspacePage() {
                 hubData={hubData}
                 calendarEvents={calendarEvents}
                 workspaceGoals={workspaceGoals}
-                unfinishedTrainingPrograms={unfinishedTrainingPrograms}
                 epsUnreadMailbox={epsUnreadMailbox}
                 userName={userName}
                 appsCount={apps.length}

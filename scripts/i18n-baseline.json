@@ -1,5 +1,5 @@
 {
-  "total": 3538,
+  "total": 3537,
   "files": {
     "src/application/use-cases/auth/PasswordLoginWithE2eeBootstrapUseCase.ts": 11,
     "src/application/use-cases/auth/SsoE2eeRecoveryUseCase.ts": 2,
@@ -78,7 +78,6 @@
     "src/presentation/pages/alemai/smart-agent/utils.tsx": 4,
     "src/presentation/pages/alemai/tzai/api/client.ts": 7,
     "src/presentation/pages/alemai/tzai/components/TzAiPanel.tsx": 41,
-    "src/presentation/pages/alemdrive/drive-src/api/client.js": 1,
     "src/presentation/pages/alemdrive/drive-src/components/ArchivePreviewModal.jsx": 12,
     "src/presentation/pages/alemdrive/drive-src/components/CreateMenu.jsx": 8,
     "src/presentation/pages/alemdrive/drive-src/components/DocumentDetailsPanel.jsx": 44,

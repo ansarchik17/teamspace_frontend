@@ -203,6 +203,7 @@ interface UpdateStatusResponseDto {
 
 interface ChangePasswordResponseDto {
   message?: string
+  reauthentication_required?: boolean
 }
 
 interface SaveE2eeBackupRequestDto {
@@ -819,6 +820,7 @@ export class HttpProfileRepository implements ProfileRepository {
     const data = (await response.json()) as ChangePasswordResponseDto
     return {
       message: data.message ?? '',
+      reauthenticationRequired: data.reauthentication_required === true,
     }
   }
 

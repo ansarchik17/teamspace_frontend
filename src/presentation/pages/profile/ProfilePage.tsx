@@ -26,6 +26,7 @@ import ProfilePersonalDataSection from '../../components/profile/ProfilePersonal
 import './profileSettings.css'
 import ProfileUserCard from '../../components/profile/ProfileUserCard'
 import { createProfileController } from '../../profile/createProfileController'
+import { finishPasswordChangeSession } from '../../auth/finishPasswordChangeSession'
 import type { CurrentProfileViewModel, ProfilePageViewModel } from '../../view-models/ProfileViewModel'
 
 const emptyProfileViewModel: ProfilePageViewModel = {
@@ -324,7 +325,8 @@ export default function ProfilePage() {
 
     setIsPasswordSaving(true)
     try {
-      await profileSettingsController.changePassword(oldPass, newPass)
+      const result = await profileSettingsController.changePassword(oldPass, newPass)
+      if (finishPasswordChangeSession(result, sessionStore)) return
       
       const tokens = sessionStore.getTokens()
       if (tokens) {

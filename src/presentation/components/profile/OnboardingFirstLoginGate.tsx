@@ -5,6 +5,7 @@ import { ChangeMyPasswordUseCase } from '../../../application/use-cases/profile/
 import { HttpProfileRepository } from '../../../infrastructure/repositories/HttpProfileRepository'
 import { getErrorMessage } from '../../../shared/utils/getErrorMessage'
 import MustChangePasswordModal from './MustChangePasswordModal'
+import { finishPasswordChangeSession } from '../../auth/finishPasswordChangeSession'
 
 interface Props {
   sessionStore: AuthSessionStore
@@ -31,8 +32,9 @@ export default function OnboardingFirstLoginGate({ sessionStore, onPasswordChang
       setError('')
       try {
         if (!passwordSaved.current) {
-          await changePassword.execute(oldPassword, newPassword)
+          const result = await changePassword.execute(oldPassword, newPassword)
           passwordSaved.current = true
+          if (finishPasswordChangeSession(result, sessionStore)) return
         }
         // Confirm the server profile after saving. A failed profile read must
         // not replay a successfully committed password mutation.

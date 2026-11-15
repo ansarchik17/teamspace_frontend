@@ -9,6 +9,7 @@ import { LogoutUseCase } from '../../../application/use-cases/auth/LogoutUseCase
 import { NotificationRealtimeClient } from '../../../infrastructure/notifications/NotificationRealtimeClient'
 import { HttpAuthRepository } from '../../../infrastructure/repositories/HttpAuthRepository'
 import { HttpProfileRepository } from '../../../infrastructure/repositories/HttpProfileRepository'
+import { HttpOrganizationRepository } from '../../../infrastructure/repositories/HttpOrganizationRepository'
 import { LocalStorageAuthSessionStore } from '../../../infrastructure/storage/LocalStorageAuthSessionStore'
 import TopNavLayout from '../../../shared/ui/TopNavLayout'
 import WorkspaceTopNav from '../../../shared/ui/WorkspaceTopNav'
@@ -28,6 +29,7 @@ import {
 import { consumeAuthFlashNotice, storeAuthFlashNotice, type AuthFlashNotice } from '../../../shared/auth/authFlashNotice'
 import { C } from './model/constants'
 import { createAuthController } from '../../auth/createAuthController'
+import { useWorkspaceProfileRole } from '../../auth/useWorkspaceProfileRole'
 import MeetCallProvider from '../meet/MeetCallProvider'
 import { CallManagerProvider } from '../../calls/CallManagerContext'
 import { createCalendarController } from '../../calendar/createCalendarController'
@@ -528,6 +530,8 @@ export default function WorkspaceLayout() {
   const authRepository = useMemo(() => new HttpAuthRepository(), [])
   const sessionStore = useMemo(() => new LocalStorageAuthSessionStore(), [])
   const profileRepository = useMemo(() => new HttpProfileRepository(sessionStore), [sessionStore])
+  const organizationRepository = useMemo(() => new HttpOrganizationRepository(sessionStore), [sessionStore])
+  const profileRole = useWorkspaceProfileRole(organizationRepository, currentUserId, userRole, location.pathname)
   const logoutUseCase = useMemo(() => new LogoutUseCase(authRepository, sessionStore), [authRepository, sessionStore])
   const { authController } = useMemo(() => createAuthController(), [])
   const { calendarController } = useMemo(() => createCalendarController(), [])
@@ -1175,6 +1179,7 @@ export default function WorkspaceLayout() {
           onResolveDriveDeleteRequest={handleResolveDriveDeleteRequest}
           userName={userName}
           userRole={userRole}
+          profileRole={profileRole}
           userEmail={userEmail}
           avatarUrl={avatarUrl}
         accessToken={sessionStore.getTokens()?.accessToken}

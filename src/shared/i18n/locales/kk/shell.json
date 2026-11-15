@@ -32,7 +32,8 @@
     "admin": "Әкімші",
     "superadmin": "Платформа әкімшісі",
     "companyAdmin": "Компания әкімшісі",
-    "manager": "Басшы"
+    "manager": "Басшы",
+    "director": "Директор"
   },
   "sidebar": {
     "label": "Негізгі навигация",

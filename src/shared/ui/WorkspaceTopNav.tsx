@@ -126,6 +126,7 @@ const ROLE_LABEL_KEYS: Record<string, string> = {
   superadmin: 'roles.superadmin',
   company_admin: 'roles.companyAdmin',
   manager: 'roles.manager',
+  director: 'roles.director',
 }
 
 interface WorkspaceTopNavProps {
@@ -158,6 +159,8 @@ interface WorkspaceTopNavProps {
   onToggleSidebar?: () => void
   compact?: boolean
   userRole?: string
+  /** Organization-aware label; never used for access checks. */
+  profileRole?: string
 }
 
 const NARROW_SEARCH_QUERY = '(max-width: 700px)'
@@ -187,6 +190,7 @@ export default function WorkspaceTopNav({
   onToggleSidebar,
   compact = false,
   userRole = '',
+  profileRole = userRole,
 }: WorkspaceTopNavProps) {
   const navigate = useNavigate()
   const { t } = useTranslation(['shell', 'common'])
@@ -744,7 +748,7 @@ export default function WorkspaceTopNav({
               <GradientAvatar initials={initials} src={avatarUrl} size={compact ? 40 : 28} seed={0} />
               <div className="hidden text-left md:block">
                 <div className="wr-profile-name text-[12px] font-bold leading-none text-[#1A1F36]">{displayName}</div>
-                {compact ? <div className="wr-profile-role mt-1 text-[10px] text-[#71829D]">{(ROLE_LABEL_KEYS[userRole] ? t(ROLE_LABEL_KEYS[userRole]) : userRole) || t('profile.defaultRole')}</div> : null}
+                {compact ? <div className="wr-profile-role mt-1 text-[10px] text-[#71829D]">{(ROLE_LABEL_KEYS[profileRole] ? t(ROLE_LABEL_KEYS[profileRole]) : profileRole) || t('profile.defaultRole')}</div> : null}
               </div>
               <MaterialSymbol name="expand_more" size={16} color="#6B7A99" />
             </button>

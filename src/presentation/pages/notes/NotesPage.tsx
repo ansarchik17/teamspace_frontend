@@ -9,6 +9,7 @@ import { HttpAlemAiRepository } from '../../../infrastructure/repositories/HttpA
 import { HttpNoteRepository } from '../../../infrastructure/repositories/HttpNoteRepository'
 import { HttpProfileRepository } from '../../../infrastructure/repositories/HttpProfileRepository'
 import { HttpError } from '../../../infrastructure/http/HttpError'
+import { noteTableCellHtml } from './noteTableCellHtml'
 import { LocalStorageAuthSessionStore } from '../../../infrastructure/storage/LocalStorageAuthSessionStore'
 import { normalizeBackendAssetUrl } from '../../../infrastructure/http/normalizeBackendAssetUrl'
 import AppToast from '../../../shared/ui/AppToast'
@@ -779,14 +780,6 @@ export default function NotesPage() {
   const restore = async () => { if (note) await handleRowAction('restore', note) }
   const unarchive = async () => { if (note) await handleRowAction('archive', note) }
   const archiveNote = async () => { if (note) await handleRowAction('archive', note) }
-  const onTableDeleteColumn = useCallback(async (blockId: string, colIndex: number) => {
-    if (!note) return
-    await notesRepo.deleteTableColumn(note.id, blockId, colIndex)
-  }, [note, notesRepo])
-  const onTableClearCell = useCallback(async (blockId: string, rowIndex: number, colIndex: number) => {
-    if (!note) return
-    await notesRepo.clearTableCell(note.id, blockId, rowIndex, colIndex)
-  }, [note, notesRepo])
   const hardDelete = async () => { 
     if (!note || isActionPending) return; 
     if (!window.confirm(nt('page.t018'))) return
@@ -1864,7 +1857,6 @@ export default function NotesPage() {
                             block={b}
                             readOnly={!editable || isActionPending}
                             activeMarks={activeMarks}
-                            noteId={note.id}
                             autoFocus={focusBlockId === b.id}
                             focusAtStart={focusAtStart}
                             listNumber={listNumbers[b.id]}
@@ -1881,8 +1873,6 @@ export default function NotesPage() {
                             slashActive={slash?.blockId === b.id}
                             onSlash={(state) => setSlash(state ? { blockId: b.id, query: state.query, index: slash?.blockId === b.id && slash.query === state.query ? slash.index : 0, position: slash?.blockId === b.id ? slash.position : slashMenuPosition(state.rect) } : (slash?.blockId === b.id ? null : slash))}
                             onSlashKey={handleSlashKey}
-                            onTableDeleteColumn={onTableDeleteColumn}
-                            onTableClearCell={onTableClearCell}
                             attachment={note.attachments?.find((a) => a.id === (b as any).attachmentId || a.file_id === (b as any).attachmentId)}
                             onChange={(next) => editable && patchBlock(b.id, next)}
                             onInsertAfter={(nextBlock) => { insertBlockAfter(b.id, nextBlock); if (nextBlock.type === 'paragraph') { setFocusAtStart(true); setFocusBlockId(nextBlock.id) } }}
@@ -2337,7 +2327,7 @@ function AudioAttachmentPlayer({ block, attachment }: any) {
   )
 }
 
-function BlockEditor({ block, readOnly, activeMarks, attachment, noteId, autoFocus, focusAtStart, listNumber, onRequestFocus, onRemoveEmpty, onFocused, slashActive, onSlash, onSlashKey, onTableDeleteColumn, onTableClearCell, onChange, onInsertAfter, onPasteMarkdown, onPasteImage, onTextSelect, onRemove, onImageClick }: any) {
+function BlockEditor({ block, readOnly, activeMarks, attachment, autoFocus, focusAtStart, listNumber, onRequestFocus, onRemoveEmpty, onFocused, slashActive, onSlash, onSlashKey, onChange, onInsertAfter, onPasteMarkdown, onPasteImage, onTextSelect, onRemove, onImageClick }: any) {
   if (block.type === 'audio') return <AudioAttachmentPlayer block={block} attachment={attachment} />
   if (block.type === 'paragraph') {
     return (
@@ -2372,9 +2362,6 @@ function BlockEditor({ block, readOnly, activeMarks, attachment, noteId, autoFoc
       <TableEditor
         block={block}
         readOnly={readOnly}
-        noteId={noteId}
-        onDeleteColumn={onTableDeleteColumn}
-        onClearCell={onTableClearCell}
         onChange={onChange}
         onRemove={onRemove}
       />
@@ -2397,7 +2384,7 @@ function BlockEditor({ block, readOnly, activeMarks, attachment, noteId, autoFoc
   )
 }
 
-function TableEditor({ block, readOnly, noteId, onDeleteColumn, onClearCell, onChange, onRemove }: any) {
+function TableEditor({ block, readOnly, onChange, onRemove }: any) {
   const [menu, setMenu] = useState<{ type: 'row' | 'col'; index: number; x: number; y: number } | null>(null)
   const [hoveredRow, setHoveredRow] = useState<number | null>(null)
   const [hoveredCol, setHoveredCol] = useState<number | null>(null)
@@ -2438,19 +2425,12 @@ function TableEditor({ block, readOnly, noteId, onDeleteColumn, onClearCell, onC
 
   const removeColumn = (index: number) => {
     if (colCount <= 1) return
-    void (async () => {
-      if (noteId && block.id && onDeleteColumn) {
-        try {
-          await onDeleteColumn(block.id, index)
-        } catch {
-          return
-        }
-      }
-      onChange({
-        ...block,
-        rows: block.rows.map((r: any[]) => r.filter((_: any, ci: number) => ci !== index)),
-      })
-    })()
+    // Persist the complete table through the same versioned autosave as rows
+    // and cell edits, rather than racing it with a second mutation request.
+    onChange({
+      ...block,
+      rows: block.rows.map((r: any[]) => r.filter((_: any, ci: number) => ci !== index)),
+    })
   }
 
   useEffect(() => {
@@ -2637,10 +2617,6 @@ function TableEditor({ block, readOnly, noteId, onDeleteColumn, onClearCell, onC
                         readOnly={readOnly}
                         onChange={(next) => {
                           updateCell(ri, ci, next)
-                          const empty = !(next.text || '').trim() && !(next.html || '').replace(/<br\s*\/?>/gi, '').replace(/&nbsp;/gi, '').trim()
-                          if (empty && noteId && block.id && onClearCell) {
-                            void onClearCell(block.id, ri, ci).catch(() => {})
-                          }
                         }}
                       />
                     </div>
@@ -2716,28 +2692,9 @@ function TableCellEditor({ cell, readOnly, onChange }: any) {
   const ref = useRef<HTMLDivElement | null>(null)
   const isTyping = useRef(false)
 
-  const escapeHtml = (value: string) => value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-
-  const normalizeStoredHtml = (value: string) => {
-    if (!value) return ''
-    let html = value
-    // Some backends return escaped HTML entities; decode once.
-    if (html.includes('&lt;') || html.includes('&gt;') || html.includes('&#')) {
-      const textarea = document.createElement('textarea')
-      textarea.innerHTML = html
-      html = textarea.value
-    }
-    // Accept only actual HTML payloads, otherwise fallback to plain text.
-    return /<([a-z][^>\s]*)(?:\s[^>]*)?>/i.test(html) ? html : ''
-  }
-
   useEffect(() => {
     if (!ref.current || isTyping.current) return
-    const restoredHtml = normalizeStoredHtml(cell?.html || '')
-    const nextHtml = restoredHtml || escapeHtml(cell?.text || '').replace(/\n/g, '<br/>')
+    const nextHtml = noteTableCellHtml(cell)
     if (ref.current.innerHTML !== nextHtml) {
       ref.current.innerHTML = nextHtml
     }

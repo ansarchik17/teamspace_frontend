@@ -24,6 +24,23 @@ const createRepo = (send) => {
   return new exports.HttpNoteRepository({})
 }
 
+test('note updates serialize and restore formatted table cells without dropping HTML', async () => {
+  const doc = { type: 'doc', version: 1, blocks: [{ id: 'table', type: 'table', rows: [[
+    { text: 'Bold', html: '<b>Bold</b>' },
+    { text: '<literal>', html: '&lt;literal&gt;' },
+    { text: 'Legacy text' },
+  ]] }] }
+  const repo = createRepo(async (_session, path, init) => {
+    assert.equal(path, '/api/v1/notes/note-1')
+    assert.equal(init.method, 'PATCH')
+    const body = JSON.parse(init.body)
+    assert.deepEqual(body.content_doc, doc)
+    return Response.json({ id: 'note-1', version: 2, content_doc: body.content_doc })
+  })
+  const result = await repo.updateNote('note-1', { version: 1, content_doc: doc })
+  assert.equal(JSON.stringify(result.content_doc), JSON.stringify(doc))
+})
+
 test('uploads through authorized notes API using multipart and server attachment ID', async () => {
   const file = new File(['png data'], 'picture.png', { type: 'image/png' })
   const calls = []

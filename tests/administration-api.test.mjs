@@ -161,7 +161,94 @@ test('protected account deletion keeps its specific safe error', () => {
   assert.equal(administrationError(new HttpError('Assign a different owner first',409,'ADMIN_DELETION_PROTECTED')), 'Assign a different owner first')
 })
 
-const { loadCurrentOrganizationContact } = await import('../src/presentation/pages/alem-contact/loadOrganizationDirectory.ts')
+const { loadOrganizationDirectory, loadCurrentOrganizationContact } = await import('../src/presentation/pages/alem-contact/loadOrganizationDirectory.ts')
+
+test('company directory uses only membership data and preserves employee fields and hierarchy', async t => {
+  const paths = []
+  t.mock.method(globalThis, 'fetch', async (path, init) => {
+    paths.push(path)
+    assert.equal(init.headers.get('Authorization'), 'Bearer test-only-token')
+    if (path === '/api/v1/organizations/current') return Response.json({ id: 'qa', name: 'QA', owner_id: 40 })
+    if (path === '/api/v1/organizations/current/units') return Response.json([
+      { id: 'division', name: 'Engineering', manager_id: 41 },
+      { id: 'team', name: 'Product', parent_unit_id: 'division', manager_id: 48 },
+    ])
+    if (path === '/api/v1/organizations/current/users') return Response.json([
+      { id: 48, full_name: ' QA Employee ', username: 'qa.employee', email: 'qa@example.invalid', position: 'Engineer', avatar_url: '/avatars/48.png', availability_status: 'vacation', unit_id: 'team', manager_id: 40 },
+      { id: 40, full_name: 'Director', email: 'director@example.invalid', position: 'Director', unit_id: 'team', manager_id: 41 },
+      { id: 41, full_name: 'Manager', email: 'manager@example.invalid', unit_id: 'division' },
+      { id: 49, full_name: '', email: 'unassigned@example.invalid', is_active: false },
+    ])
+    return new Response(null, { status: 404 })
+  })
+  const directory = await loadOrganizationDirectory(store, 'user')
+  assert.deepEqual(paths.sort(), [
+    '/api/v1/organizations/current',
+    '/api/v1/organizations/current/units',
+    '/api/v1/organizations/current/users',
+  ])
+  assert.deepEqual(directory.organizations, ['QA'])
+  const employee = directory.contacts.find(contact => contact.id === 48)
+  assert.equal(employee.full_name, 'QA Employee')
+  assert.equal(employee.username, 'qa.employee')
+  assert.equal(employee.email, 'qa@example.invalid')
+  assert.equal(employee.position, 'Engineer')
+  assert.equal(employee.avatar_url, '/avatars/48.png')
+  assert.equal(employee.availability_status, 'vacation')
+  assert.equal(employee.organization_id, 'qa')
+  assert.equal(employee.organization, 'QA')
+  assert.equal(employee.team_id, 'team')
+  assert.equal(employee.department_unit, 'Engineering / Product')
+  assert.equal(employee.manager_id, 41, 'a unit manager cannot supervise themselves; use the parent unit')
+  assert.equal(directory.contacts.find(contact => contact.id === 40).manager_id, null, 'the director has no manager')
+  const unassigned = directory.contacts.find(contact => contact.id === 49)
+  assert.equal(unassigned.full_name, 'unassigned@example.invalid')
+  assert.equal(unassigned.username, 'unassigned@example.invalid')
+  assert.equal(unassigned.is_active, false)
+  assert.equal(unassigned.department_unit, null)
+})
+
+test('platform directory paginates companies, skips suspended companies and keeps membership scopes', async t => {
+  const paths = []
+  t.mock.method(globalThis, 'fetch', async path => {
+    paths.push(path)
+    if (path === '/api/v1/platform/organizations?limit=100&offset=0') return Response.json({
+      items: [{ id: 'company-a', name: 'Alpha', status: 'active', owner_id: 40 }, { id: 'suspended', name: 'Suspended', status: 'suspended' }], total: 3,
+    })
+    if (path === '/api/v1/platform/organizations?limit=100&offset=2') return Response.json({
+      items: [{ id: 'company-b', name: 'Beta', status: 'active', owner_id: 41 }], total: 3,
+    })
+    if (path.endsWith('/units')) return Response.json([])
+    if (path === '/api/v1/platform/organizations/company-a/users') return Response.json([{ id: 40, full_name: 'Alpha Director', email: 'a@example.invalid', position: 'Director' }])
+    if (path === '/api/v1/platform/organizations/company-b/users') return Response.json([{ id: 41, full_name: 'Beta Director', email: 'b@example.invalid', position: 'Director' }])
+    return new Response(null, { status: 404 })
+  })
+  const directory = await loadOrganizationDirectory(store, 'admin')
+  assert.deepEqual(paths.sort(), [
+    '/api/v1/platform/organizations?limit=100&offset=0',
+    '/api/v1/platform/organizations/company-a/units',
+    '/api/v1/platform/organizations/company-a/users',
+    '/api/v1/platform/organizations?limit=100&offset=2',
+    '/api/v1/platform/organizations/company-b/units',
+    '/api/v1/platform/organizations/company-b/users',
+  ].sort())
+  assert.deepEqual(directory.organizations, ['Alpha', 'Beta'])
+  assert.deepEqual(directory.contacts.map(contact => [contact.id, contact.organization_id, contact.organization, contact.position, contact.manager_id]), [
+    [40, 'company-a', 'Alpha', 'Director', null],
+    [41, 'company-b', 'Beta', 'Director', null],
+  ])
+})
+
+test('an empty platform directory needs no employee lookup', async t => {
+  const paths = []
+  t.mock.method(globalThis, 'fetch', async path => {
+    paths.push(path)
+    return Response.json({ items: [], total: 0 })
+  })
+  assert.deepEqual(await loadOrganizationDirectory(store, 'admin'), { contacts: [], organizations: [] })
+  assert.deepEqual(paths, ['/api/v1/platform/organizations?limit=100&offset=0'])
+})
+
 test('employee deep links use current-company membership and propagate denied access', async t => {
   const paths = []
   t.mock.method(globalThis, 'fetch', async path => {
@@ -173,7 +260,11 @@ test('employee deep links use current-company membership and propagate denied ac
   })
   assert.equal((await loadCurrentOrganizationContact(store, 48)).id, 48)
   assert.equal(await loadCurrentOrganizationContact(store, 999), undefined)
-  assert.equal(paths.some(path => path.includes('/platform/') || path.startsWith('/api/v1/contacts')), false)
+  assert.ok(paths.every(path => [
+    '/api/v1/organizations/current',
+    '/api/v1/organizations/current/units',
+    '/api/v1/organizations/current/users',
+  ].includes(path)), 'deep links must not query global directories or retired HR routes')
   globalThis.fetch = async () => Response.json({ message: 'Denied' }, { status: 403 })
   await assert.rejects(loadCurrentOrganizationContact(store, 48))
 })

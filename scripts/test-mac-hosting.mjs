@@ -28,11 +28,11 @@ async function freePort() {
   await close(server)
   return port
 }
-function request(port, path, { tls = false, method = 'GET', body } = {}) {
+function request(port, path, { tls = false, tunnel = false, method = 'GET', body } = {}) {
   return new Promise((resolvePromise, reject) => {
     const req = (tls ? httpsRequest : httpRequest)({
       hostname: '127.0.0.1', port, path, method,
-      headers: { Host: tls ? 'unitespace.kz' : `127.0.0.1:${port}` },
+      headers: { Host: tls || tunnel ? 'unitespace.kz' : `127.0.0.1:${port}`, ...(tunnel ? { 'X-Forwarded-Proto': 'https' } : {}) },
       ...(tls ? { servername: 'unitespace.kz', ca: certificate } : {}),
       timeout: 3_000,
     }, res => {
@@ -72,18 +72,20 @@ try {
   assert.equal(openssl.status, 0, 'Test requires OpenSSL with -addext support')
   certificate = await readFile(cert)
 
-  for (const publicProfile of [false, true]) {
+  for (const profile of ['preview', 'https', 'tunnel']) {
+    const publicProfile = profile === 'https'
+    const tunnelProfile = profile === 'tunnel'
     const port = await freePort()
     const tlsPort = await freePort()
-    let config = await readFile(join(root, 'deploy/mac', publicProfile ? 'Caddyfile' : 'preview.Caddyfile'), 'utf8')
-    config = config.replaceAll('9080', String(port)).replaceAll('9443', String(tlsPort))
+    let config = await readFile(join(root, 'deploy/mac', publicProfile ? 'Caddyfile' : tunnelProfile ? 'tunnel.Caddyfile' : 'preview.Caddyfile'), 'utf8')
+    config = config.replaceAll('9080', String(port)).replaceAll('9081', String(port)).replaceAll('9443', String(tlsPort))
     config = config.replace('{\n', '{\n\tdefault_bind 127.0.0.1\n\tpersist_config off\n')
     if (publicProfile) config = config.replace(`https://unitespace.kz:${tlsPort} {`, `https://unitespace.kz:${tlsPort} {\n\ttls ${cert} ${key}`)
     const path = join(temp, 'Caddyfile')
     await writeFile(path, config)
     const child = spawn('caddy', ['run', '--config', path, '--adapter', 'caddyfile'], {
       cwd: temp, stdio: ['ignore', 'ignore', 'pipe'],
-      env: { ...process.env, MAC_DIST: join(temp, 'dist'), XDG_DATA_HOME: join(temp, 'data'), XDG_CONFIG_HOME: join(temp, 'config') },
+      env: { ...process.env, MAC_API_UPSTREAM: upstream, SHARE_HOST: 'unitespace.kz', MAC_DIST: join(temp, 'dist'), XDG_DATA_HOME: join(temp, 'data'), XDG_CONFIG_HOME: join(temp, 'config') },
     })
     children.add(child)
     let errorOutput = ''
@@ -91,11 +93,11 @@ try {
     child.on('error', () => {})
     let started = false
     for (let attempt = 0; attempt < 60; attempt++) {
-      try { await request(publicProfile ? tlsPort : port, '/web/login', { tls: publicProfile }); started = true; break }
+      try { await request(publicProfile ? tlsPort : port, '/web/login', { tls: publicProfile, tunnel: tunnelProfile }); started = true; break }
       catch { await delay(100) }
     }
     assert.ok(started, `Caddy did not start: ${errorOutput}`)
-    const get = (path, options = {}) => request(publicProfile ? tlsPort : port, path, { tls: publicProfile, ...options })
+    const get = (path, options = {}) => request(publicProfile ? tlsPort : port, path, { tls: publicProfile, tunnel: tunnelProfile, ...options })
     for (const path of ['/web/login', '/web/workspace', '/web/join']) {
       const response = await get(path)
       assert.equal(response.status, 200, path)
@@ -116,7 +118,7 @@ try {
     assert.equal(api.status, 200)
     assert.equal(payload.path, '/api/v1/probe?test=1')
     assert.equal(payload.body, 'fixture')
-    assert.equal(payload.proto, publicProfile ? 'https' : 'http')
+    assert.equal(payload.proto, publicProfile || tunnelProfile ? 'https' : 'http')
     const s3Path = '/workspace/probe?X-Amz-Algorithm=AWS4-HMAC-SHA256&signature=fixture'
     assert.equal((await get(s3Path)).status, 404, 'Unsigned reads must not reach S3')
     assert.equal((await get('/workspace/probe', { method: 'PUT' })).status, 404)
@@ -124,7 +126,7 @@ try {
     const uploaded = JSON.parse(upload.text)
     assert.equal(upload.status, 200)
     assert.equal(uploaded.path, s3Path, 'S3 signed path/query must remain intact')
-    assert.equal(uploaded.host, publicProfile ? 'unitespace.kz' : `127.0.0.1:${port}`)
+    assert.equal(uploaded.host, publicProfile || tunnelProfile ? 'unitespace.kz' : `127.0.0.1:${port}`)
     assert.equal(uploaded.body, 'upload fixture')
     if (publicProfile) {
       // Match the public hostname while connecting only to a local test port.
@@ -137,7 +139,7 @@ try {
       assert.equal(result.headers.location, 'https://unitespace.kz/web/login?q=1')
     }
     await stop(child)
-    console.log(`${publicProfile ? 'HTTPS' : 'Local'} gateway passed: SPA/assets, private paths, API forwarding, S3 PUT and canonical redirects.`)
+    console.log(`${profile} gateway passed: SPA/assets, private paths, API forwarding, S3 PUT and canonical redirects.`)
   }
 } finally {
   await Promise.all([...children].map(stop))

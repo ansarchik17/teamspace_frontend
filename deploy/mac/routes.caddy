@@ -5,7 +5,7 @@
 	# Swagger and other local services have no public route in this profile.
 	@api path /api/v1 /api/v1/*
 	handle @api {
-		reverse_proxy 127.0.0.1:8080 {
+		reverse_proxy {$MAC_API_UPSTREAM:127.0.0.1:8080} {
 			flush_interval -1
 		}
 	}

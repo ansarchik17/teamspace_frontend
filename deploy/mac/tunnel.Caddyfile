@@ -1,0 +1,19 @@
+{
+	admin off
+	persist_config off
+	servers {
+		trusted_proxies static 127.0.0.1/32 ::1/128
+		trusted_proxies_strict
+	}
+}
+
+import routes.caddy
+
+# Only the local cloudflared connector can reach this listener. Preserve the
+# public Host for S3 signatures and the trusted HTTPS scheme for auth cookies.
+http://{$SHARE_HOST:localhost}:9081 {
+	bind 127.0.0.1
+	@plain header X-Forwarded-Proto http
+	redir @plain https://{host}{uri} 308
+	import unitespace
+}

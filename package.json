@@ -17,7 +17,9 @@
     "preview": "vite preview",
     "host:mac": "node scripts/host-mac.mjs",
     "host:mac:preview": "node scripts/host-mac.mjs --preview",
-    "test:mac-hosting": "node scripts/test-mac-hosting.mjs"
+    "test:mac-hosting": "node scripts/test-mac-hosting.mjs",
+    "share": "node scripts/share.mjs",
+    "share:stop": "node scripts/share.mjs --stop"
   },
   "dependencies": {
     "@fix-webm-duration/fix": "1.0.1",

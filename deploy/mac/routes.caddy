@@ -1,0 +1,61 @@
+(unitespace) {
+	encode zstd gzip
+
+	# Only the application API is published. Keycloak/admin, MinIO console,
+	# Swagger and other local services have no public route in this profile.
+	@api path /api/v1 /api/v1/*
+	handle @api {
+		reverse_proxy 127.0.0.1:8080 {
+			flush_interval -1
+		}
+	}
+
+	# Notes upload directly using an S3 presigned PUT. Keep the original
+	# path and Host so its signature remains valid. MinIO validates it.
+	@upload {
+		method PUT
+		path /workspace/*
+		query X-Amz-Algorithm=AWS4-HMAC-SHA256
+	}
+	handle @upload {
+		reverse_proxy 127.0.0.1:19000 {
+			header_up Host {http.request.hostport}
+		}
+	}
+
+	@entry path / /web
+	redir @entry /web/ 308
+
+	handle_path /web/* {
+		root * {$MAC_DIST:dist}
+
+		@private path /.vite/* /.env* /node_modules/*
+		handle @private {
+			respond 404
+		}
+
+		handle /assets/* {
+			header Cache-Control "public, max-age=31536000, immutable"
+			file_server
+		}
+
+		# A missing image/script must be 404, not the SPA's HTML entrypoint.
+		@file path_regexp \.(?:js|css|json|svg|png|jpg|jpeg|webp|ico|woff|woff2|map|txt|xml|webmanifest)$
+		handle @file {
+			header Cache-Control "no-cache"
+			file_server
+		}
+
+		handle {
+			route {
+				try_files {path} /index.html
+				header Cache-Control "no-store"
+				file_server
+			}
+		}
+	}
+
+	handle {
+		respond "Not found" 404
+	}
+}

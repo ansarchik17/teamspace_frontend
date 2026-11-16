@@ -14,7 +14,10 @@
     "lint": "eslint .",
     "i18n:check": "node scripts/check-i18n.mjs",
     "i18n:baseline": "node scripts/check-i18n.mjs --update",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "host:mac": "node scripts/host-mac.mjs",
+    "host:mac:preview": "node scripts/host-mac.mjs --preview",
+    "test:mac-hosting": "node scripts/test-mac-hosting.mjs"
   },
   "dependencies": {
     "@fix-webm-duration/fix": "1.0.1",

@@ -1,0 +1,23 @@
+{
+	admin off
+	http_port 9080
+	https_port 9443
+	auto_https disable_redirects
+	# External 443 is forwarded to 9443 over TCP; do not advertise HTTP/3
+	# on the internal UDP port to public browsers.
+	servers {
+		protocols h1 h2
+	}
+}
+
+import routes.caddy
+
+# Router: WAN TCP 80 -> Mac TCP 9080; WAN TCP 443 -> Mac TCP 9443.
+# The public URL has no port suffix. Redirect explicitly to external port 443.
+http://unitespace.kz:9080 {
+	redir https://unitespace.kz{uri} 308
+}
+
+https://unitespace.kz:9443 {
+	import unitespace
+}

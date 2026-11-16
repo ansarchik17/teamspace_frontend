@@ -1,0 +1,11 @@
+{
+	admin off
+}
+
+import routes.caddy
+
+# Local-only verification. No certificate request or router changes.
+http://127.0.0.1:9080 {
+	bind 127.0.0.1
+	import unitespace
+}

@@ -17,6 +17,7 @@ import { useCallManager } from '../../calls/useCallManager'
 import AlemContactRatingsSection from './AlemContactRatingsSection'
 import { requestedContactId, withoutContactDeepLink } from './contactDeepLink'
 import { loadOrganizationDirectory, loadCurrentOrganizationContact } from './loadOrganizationDirectory'
+import { employeeSubdivisionIssue, type EmployeeUnitChoices } from './employeeSubdivision'
 import { HttpOrganizationRepository, type OrganizationUnit, type PlatformOrganization } from '../../../infrastructure/repositories/HttpOrganizationRepository'
 import { companyMailDomain, suggestedEmployeeLogin } from '../../../shared/lib/companyMailAddress'
 import { HttpAccessRepository } from '../../../infrastructure/repositories/HttpAccessRepository'
@@ -1585,10 +1586,9 @@ export default function AlemContactPage() {
   const [formOrganizationId, setFormOrganizationId] = useState('')
   const [formTeamId, setFormTeamId] = useState('')
   const [userOrganizations, setUserOrganizations] = useState<Array<Pick<PlatformOrganization, 'id' | 'name' | 'slug'>>>([])
-  const [userOrganizationUnits, setUserOrganizationUnits] = useState<OrganizationUnit[]>([])
+  const [unitChoices, setUnitChoices] = useState<EmployeeUnitChoices | null>(null)
+  const [unitsRetry, setUnitsRetry] = useState(0)
   const [loadingUserOrganizations, setLoadingUserOrganizations] = useState(false)
-  const [loadingUserOrganizationUnits, setLoadingUserOrganizationUnits] = useState(false)
-  const userOrganizationUnitLabels = useMemo(() => buildOrganizationUnitLabels(userOrganizationUnits), [userOrganizationUnits])
 
   // Ministry Admins Management modal state (for Super Admin)
   const [isMinistryAdminsModalOpen, setIsMinistryAdminsModalOpen] = useState(false)
@@ -1651,6 +1651,27 @@ export default function AlemContactPage() {
   const positionInvalid = !editingUser && (creatingPosition
     ? !formPosition.trim() || Boolean(selectedPosition) || !positionsReady
     : Boolean(formPosition && (!positionsReady || !selectedPosition)))
+  const unitsScope = isUserModalOpen && !editingUser && formOrganizationId
+    ? JSON.stringify([formOrganizationId, isSuperAdmin, unitsRetry]) : ''
+  const subdivisionIssue = employeeSubdivisionIssue(unitsScope, unitChoices, formTeamId)
+  const unitsReady = Boolean(unitsScope && unitChoices?.scope === unitsScope && !unitChoices.failed)
+  const userOrganizationUnits = unitsReady ? unitChoices!.items : []
+  const userOrganizationUnitLabels = useMemo(() => buildOrganizationUnitLabels(userOrganizationUnits), [userOrganizationUnits])
+  const subdivisionUnavailable = Boolean(subdivisionIssue && subdivisionIssue !== 'required')
+
+  useEffect(() => {
+    if (!unitsScope) return
+    let active = true
+    const request = isSuperAdmin
+      ? organizationRepository.listPlatformUnits(formOrganizationId)
+      : organizationRepository.listUnits()
+    void request.then(items => {
+      if (active) setUnitChoices({ scope: unitsScope, items })
+    }).catch(() => {
+      if (active) setUnitChoices({ scope: unitsScope, items: [], failed: true })
+    })
+    return () => { active = false }
+  }, [organizationRepository, formOrganizationId, isSuperAdmin, unitsScope])
 
   useEffect(() => {
     if (!positionScope) return
@@ -1678,14 +1699,6 @@ export default function AlemContactPage() {
         const current = await organizationRepository.getCurrent()
         setUserOrganizations([{ id: current.id, name: current.name, slug: current.slug }])
         setFormOrganizationId(current.id)
-        setLoadingUserOrganizationUnits(true)
-        try {
-          setUserOrganizationUnits(await organizationRepository.listUnits())
-        } catch {
-          setUserOrganizationUnits([])
-        } finally {
-          setLoadingUserOrganizationUnits(false)
-        }
       }
     } catch (err) {
       setUserFormError(err instanceof Error ? err.message : ct('page.t128'))
@@ -1702,26 +1715,6 @@ export default function AlemContactPage() {
   const effectiveFormEmail = !editingUser && isOrganizationDirectory && !emailEdited
     ? (effectiveFormUsername && selectedMailDomain ? `${effectiveFormUsername}@${selectedMailDomain}` : '')
     : formEmail
-
-  const loadUserOrganizationUnits = useCallback(
-    async (organizationId: string) => {
-      if (!organizationId) {
-        setUserOrganizationUnits([])
-        return
-      }
-      setLoadingUserOrganizationUnits(true)
-      try {
-        const units = isSuperAdmin ? await organizationRepository.listPlatformUnits(organizationId) : await organizationRepository.listUnits()
-        setUserOrganizationUnits(units)
-      } catch (err) {
-        setUserFormError(err instanceof Error ? err.message : ct('page.t129'))
-        setUserOrganizationUnits([])
-      } finally {
-        setLoadingUserOrganizationUnits(false)
-      }
-    },
-    [isSuperAdmin, organizationRepository],
-  )
 
   // Auto-filter organization for Ministry Admin
   useEffect(() => {
@@ -1753,7 +1746,7 @@ export default function AlemContactPage() {
     setFormMinistryId(isMinistryAdmin && myMinistryId ? myMinistryId : '')
     setFormOrganizationId('')
     setFormTeamId('')
-    setUserOrganizationUnits([])
+    setUnitChoices(null)
     setUserFormError(null)
     setIsUserModalOpen(true)
     void loadUserOrganizations()
@@ -1806,7 +1799,7 @@ export default function AlemContactPage() {
       setFormMinistryId(contact.ministry_id || (isMinistryAdmin && myMinistryId ? myMinistryId : ''))
       setFormOrganizationId(contact.organization_id || '')
       setFormTeamId(contact.team_id || '')
-      setUserOrganizationUnits([])
+      setUnitChoices(null)
       setUserFormError(null)
       setIsUserModalOpen(true)
       void profileRepository.getUserForEdit(contact.id).then(profile => {
@@ -1859,6 +1852,10 @@ export default function AlemContactPage() {
       setUserFormError(ct('page.t133'))
       return
     }
+    if (isOrganizationDirectory && !editingUser && subdivisionIssue) {
+      setUserFormError(ct(`employeeSubdivision.${subdivisionIssue}`))
+      return
+    }
     if (!editingUser && (!effectiveFormUsername.trim() || !formPassword.trim())) {
       setUserFormError(ct('page.t134'))
       return
@@ -1905,7 +1902,7 @@ export default function AlemContactPage() {
           position: formPosition.trim() || undefined,
           iin: formIin.trim() || undefined,
           organization_id: isOrganizationDirectory ? formOrganizationId : undefined,
-          team_id: isOrganizationDirectory && formTeamId ? formTeamId : undefined,
+          team_id: isOrganizationDirectory ? formTeamId : undefined,
           ministry_id: formMinistryId !== '' ? Number(formMinistryId) : isMinistryAdmin && myMinistryId ? myMinistryId : undefined,
         })
       }
@@ -2714,11 +2711,11 @@ export default function AlemContactPage() {
             animated
             footer={<>
               <button type="button" disabled={isSubmittingUser} onClick={closeUserModal} className="ts-button ts-button--secondary">{ct('page.t052')}</button>
-              <button type="submit" form="people-user-form" disabled={isSubmittingUser || !userFormReady || positionInvalid} className="ts-button ts-button--primary">{isSubmittingUser ? ct('page.t091') : ct('page.t092')}</button>
+              <button type="submit" form="people-user-form" disabled={isSubmittingUser || !userFormReady || positionInvalid || subdivisionUnavailable} className="ts-button ts-button--primary">{isSubmittingUser ? ct('page.t091') : ct('page.t092')}</button>
             </>}
           >
               <form id="people-user-form" onSubmit={handleSaveUser} className="space-y-4">
-                {userFormError ? <div className="rounded-[6px] border border-[#C03437]/20 bg-[#FFF0F0] p-3 text-[14px] text-[#C03437]">{userFormError}</div> : null}
+                {userFormError ? <div role="alert" className="rounded-[6px] border border-[#C03437]/20 bg-[#FFF0F0] p-3 text-[14px] text-[#C03437]">{userFormError}</div> : null}
                 {isLoadingUser && <p role="status" className="text-sm text-[#586174]">{ct('page.t167')}</p>}
                 {editingUser && !isLoadingUser && !userFormReady && <button type="button" className={AXIS_UI.secondaryButton} onClick={() => openEditUserModal(editingUser)}>{ct('page.t168')}</button>}
                 {editingUser && userFormReady && (!editingUser.first_name || !editingUser.last_name) && <p className="text-sm text-[#586174]">{ct('page.t169')}</p>}
@@ -2904,7 +2901,6 @@ export default function AlemContactPage() {
                           setPositionChoices(null)
                           if (!editingUser) { setEmailEdited(false); setFormEmail('') }
                           setFormTeamId('')
-                          void loadUserOrganizationUnits(organizationId)
                         }}
                         className="ts-input mt-1.5"
                       >
@@ -2917,28 +2913,38 @@ export default function AlemContactPage() {
                       </select>}
                     </div>
                     <div>
-                      <label className="block text-[13px] font-medium leading-5 text-[var(--ts-text-secondary)]">{ct('page.t114')}<span className="font-normal text-[#586174]">{ct('page.t182')}</span>
+                      <label htmlFor="employee-subdivision" className="block text-[13px] font-medium leading-5 text-[var(--ts-text-secondary)]">{ct('page.t114')}{!editingUser ? ' *' : ''}
                       </label>
                       {editingUser ? (
                         <input
+                          id="employee-subdivision"
                           readOnly
                           value={formTeamId ? (editingUser.department_unit || userOrganizationUnitLabels.get(formTeamId) || ct('page.t183')) : ct('page.t162')}
                           className="ts-input mt-1.5 !bg-[var(--ts-bg)] !text-[var(--ts-text-muted)]"
                         />
                       ) : <select
+                        id="employee-subdivision"
+                        required
                         value={formTeamId}
-                        disabled={!formOrganizationId || loadingUserOrganizationUnits || Boolean(editingUser)}
+                        disabled={!unitsReady || userOrganizationUnits.length === 0}
+                        aria-describedby="employee-subdivision-hint"
                         onChange={(e) => setFormTeamId(e.target.value)}
                         className="ts-input mt-1.5"
                       >
-                        <option value="">{ct('page.t162')}</option>
+                        <option value="" disabled>{ct(!formOrganizationId ? 'employeeSubdivision.chooseCompany' : subdivisionIssue === 'loading' ? 'employeeSubdivision.loading' : unitsReady && !userOrganizationUnits.length ? 'employeeSubdivision.noUnits' : 'employeeSubdivision.select')}</option>
                         {userOrganizationUnits.map((unit) => (
                           <option key={unit.id} value={unit.id}>
                             {userOrganizationUnitLabels.get(unit.id) ?? unit.name}
                           </option>
                         ))}
                       </select>}
-                      {loadingUserOrganizationUnits ? <div className="mt-1 text-[12px] text-[#586174]">{ct('page.t184')}</div> : null}
+                      {!editingUser && formOrganizationId ? <div id="employee-subdivision-hint" className="mt-1 space-y-2 text-[13px] text-[#586174]">
+                        <p role={subdivisionIssue === 'loadFailed' ? 'alert' : undefined}>{ct(subdivisionIssue && subdivisionIssue !== 'required' ? `employeeSubdivision.${subdivisionIssue}` : 'employeeSubdivision.description')}</p>
+                        {subdivisionIssue === 'empty' || subdivisionIssue === 'loadFailed' ? <div className="flex flex-wrap gap-3">
+                          {subdivisionIssue === 'empty' && <Link to={isSuperAdmin ? `/platform/organizations/${encodeURIComponent(formOrganizationId)}/structure` : '/organization'} target="_blank" rel="noopener noreferrer" className="text-[#2458D3] hover:underline">{ct('employeeSubdivision.create')}</Link>}
+                          <button type="button" onClick={() => setUnitsRetry(value => value + 1)} className="text-[#2458D3] hover:underline">{ct('employeeSubdivision.refresh')}</button>
+                        </div> : null}
+                      </div> : null}
                     </div>
                   </>
                 ) : (

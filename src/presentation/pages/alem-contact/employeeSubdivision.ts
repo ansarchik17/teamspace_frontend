@@ -6,17 +6,16 @@ export type EmployeeUnitChoices = {
   failed?: boolean
 }
 
-export type EmployeeSubdivisionIssue = 'loading' | 'loadFailed' | 'empty' | 'required'
+export type EmployeeSubdivisionIssue = 'loading' | 'loadFailed' | 'unavailable'
 
-/** Only a subdivision loaded for the current company/request may be submitted. */
+/** Unassigned employees are allowed; a selected subdivision must be current. */
 export function employeeSubdivisionIssue(
   scope: string,
   choices: EmployeeUnitChoices | null,
   selectedId: string,
 ): EmployeeSubdivisionIssue | null {
-  if (!scope) return null
+  if (!scope || !selectedId) return null
   if (choices?.scope !== scope) return 'loading'
   if (choices.failed) return 'loadFailed'
-  if (choices.items.length === 0) return 'empty'
-  return choices.items.some(unit => unit.id === selectedId) ? null : 'required'
+  return choices.items.some(unit => unit.id === selectedId) ? null : 'unavailable'
 }

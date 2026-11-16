@@ -9,23 +9,27 @@ const { employeeSubdivisionIssue } = await import(`data:text/javascript;base64,$
 const firstScope = JSON.stringify(['company-a', false, 0])
 const choices = { scope: firstScope, items: [{ id: 'team-a' }] }
 
-test('a new employee requires a subdivision from the loaded company list', () => {
-  assert.equal(employeeSubdivisionIssue(firstScope, choices, ''), 'required')
-  assert.equal(employeeSubdivisionIssue(firstScope, choices, 'foreign-team'), 'required')
+test('an employee may be unassigned but a selected subdivision must belong to the loaded list', () => {
+  assert.equal(employeeSubdivisionIssue(firstScope, choices, ''), null)
+  assert.equal(employeeSubdivisionIssue(firstScope, choices, 'foreign-team'), 'unavailable')
   assert.equal(employeeSubdivisionIssue(firstScope, choices, 'team-a'), null)
 })
 
-test('loading, failed requests and an empty company list cannot authorize creation', () => {
+test('loading or failed lists block only a selected subdivision, not unassigned employees', () => {
   assert.equal(employeeSubdivisionIssue(firstScope, null, 'team-a'), 'loading')
   assert.equal(employeeSubdivisionIssue(firstScope, { ...choices, failed: true }, 'team-a'), 'loadFailed')
-  assert.equal(employeeSubdivisionIssue(firstScope, { scope: firstScope, items: [] }, ''), 'empty')
+  for (const state of [null, { ...choices, failed: true }, { scope: firstScope, items: [] }]) {
+    assert.equal(employeeSubdivisionIssue(firstScope, state, ''), null)
+  }
+  assert.equal(employeeSubdivisionIssue(firstScope, { scope: firstScope, items: [] }, 'deleted-team'), 'unavailable')
 })
 
 test('old company or retry responses cannot validate the current selection', () => {
   for (const scope of [JSON.stringify(['company-b', false, 0]), JSON.stringify(['company-a', true, 0]), JSON.stringify(['company-a', false, 1])]) {
     assert.equal(employeeSubdivisionIssue(scope, choices, 'team-a'), 'loading')
-    assert.equal(employeeSubdivisionIssue(scope, { scope, items: [{ id: 'team-b' }] }, 'team-a'), 'required')
+    assert.equal(employeeSubdivisionIssue(scope, { scope, items: [{ id: 'team-b' }] }, 'team-a'), 'unavailable')
     assert.equal(employeeSubdivisionIssue(scope, { scope, items: [{ id: 'team-b' }] }, 'team-b'), null)
+    assert.equal(employeeSubdivisionIssue(scope, choices, ''), null)
   }
 })
 

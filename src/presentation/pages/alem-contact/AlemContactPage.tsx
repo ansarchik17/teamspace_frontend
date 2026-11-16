@@ -1657,7 +1657,11 @@ export default function AlemContactPage() {
   const unitsReady = Boolean(unitsScope && unitChoices?.scope === unitsScope && !unitChoices.failed)
   const userOrganizationUnits = unitsReady ? unitChoices!.items : []
   const userOrganizationUnitLabels = useMemo(() => buildOrganizationUnitLabels(userOrganizationUnits), [userOrganizationUnits])
-  const subdivisionUnavailable = Boolean(subdivisionIssue && subdivisionIssue !== 'required')
+  const subdivisionUnavailable = Boolean(subdivisionIssue)
+  const unitsLoading = Boolean(unitsScope && unitChoices?.scope !== unitsScope)
+  const unitsFailed = Boolean(unitsScope && unitChoices?.scope === unitsScope && unitChoices.failed)
+  const unitsEmpty = unitsReady && userOrganizationUnits.length === 0
+  const subdivisionHint = subdivisionIssue ?? (unitsLoading ? 'loading' : unitsFailed ? 'loadFailed' : unitsEmpty ? 'empty' : 'description')
 
   useEffect(() => {
     if (!unitsScope) return
@@ -1902,7 +1906,7 @@ export default function AlemContactPage() {
           position: formPosition.trim() || undefined,
           iin: formIin.trim() || undefined,
           organization_id: isOrganizationDirectory ? formOrganizationId : undefined,
-          team_id: isOrganizationDirectory ? formTeamId : undefined,
+          team_id: isOrganizationDirectory && formTeamId ? formTeamId : undefined,
           ministry_id: formMinistryId !== '' ? Number(formMinistryId) : isMinistryAdmin && myMinistryId ? myMinistryId : undefined,
         })
       }
@@ -2913,7 +2917,7 @@ export default function AlemContactPage() {
                       </select>}
                     </div>
                     <div>
-                      <label htmlFor="employee-subdivision" className="block text-[13px] font-medium leading-5 text-[var(--ts-text-secondary)]">{ct('page.t114')}{!editingUser ? ' *' : ''}
+                      <label htmlFor="employee-subdivision" className="block text-[13px] font-medium leading-5 text-[var(--ts-text-secondary)]">{ct('page.t114')}{!editingUser ? <span className="font-normal text-[#586174]"> {ct('page.t182')}</span> : null}
                       </label>
                       {editingUser ? (
                         <input
@@ -2924,14 +2928,14 @@ export default function AlemContactPage() {
                         />
                       ) : <select
                         id="employee-subdivision"
-                        required
                         value={formTeamId}
-                        disabled={!unitsReady || userOrganizationUnits.length === 0}
-                        aria-describedby="employee-subdivision-hint"
+                        disabled={!formOrganizationId}
+                        aria-describedby={formOrganizationId ? 'employee-subdivision-hint' : undefined}
                         onChange={(e) => setFormTeamId(e.target.value)}
                         className="ts-input mt-1.5"
                       >
-                        <option value="" disabled>{ct(!formOrganizationId ? 'employeeSubdivision.chooseCompany' : subdivisionIssue === 'loading' ? 'employeeSubdivision.loading' : unitsReady && !userOrganizationUnits.length ? 'employeeSubdivision.noUnits' : 'employeeSubdivision.select')}</option>
+                        <option value="">{ct(formOrganizationId ? 'page.t162' : 'employeeSubdivision.chooseCompany')}</option>
+                        {formTeamId && !userOrganizationUnits.some(unit => unit.id === formTeamId) ? <option value={formTeamId} disabled>{ct(subdivisionIssue === 'loading' ? 'employeeSubdivision.loading' : 'employeeSubdivision.unavailable')}</option> : null}
                         {userOrganizationUnits.map((unit) => (
                           <option key={unit.id} value={unit.id}>
                             {userOrganizationUnitLabels.get(unit.id) ?? unit.name}
@@ -2939,9 +2943,9 @@ export default function AlemContactPage() {
                         ))}
                       </select>}
                       {!editingUser && formOrganizationId ? <div id="employee-subdivision-hint" className="mt-1 space-y-2 text-[13px] text-[#586174]">
-                        <p role={subdivisionIssue === 'loadFailed' ? 'alert' : undefined}>{ct(subdivisionIssue && subdivisionIssue !== 'required' ? `employeeSubdivision.${subdivisionIssue}` : 'employeeSubdivision.description')}</p>
-                        {subdivisionIssue === 'empty' || subdivisionIssue === 'loadFailed' ? <div className="flex flex-wrap gap-3">
-                          {subdivisionIssue === 'empty' && <Link to={isSuperAdmin ? `/platform/organizations/${encodeURIComponent(formOrganizationId)}/structure` : '/organization'} target="_blank" rel="noopener noreferrer" className="text-[#2458D3] hover:underline">{ct('employeeSubdivision.create')}</Link>}
+                        <p role={unitsFailed || subdivisionIssue === 'unavailable' ? 'alert' : undefined}>{ct(`employeeSubdivision.${subdivisionHint}`)}</p>
+                        {unitsEmpty || unitsFailed ? <div className="flex flex-wrap gap-3">
+                          {unitsEmpty && <Link to={isSuperAdmin ? `/platform/organizations/${encodeURIComponent(formOrganizationId)}/structure` : '/organization'} target="_blank" rel="noopener noreferrer" className="text-[#2458D3] hover:underline">{ct('employeeSubdivision.create')}</Link>}
                           <button type="button" onClick={() => setUnitsRetry(value => value + 1)} className="text-[#2458D3] hover:underline">{ct('employeeSubdivision.refresh')}</button>
                         </div> : null}
                       </div> : null}

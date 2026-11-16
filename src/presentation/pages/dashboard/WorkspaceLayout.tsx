@@ -19,6 +19,7 @@ import PublicationBannerHost from '../../components/workspace/PublicationBannerH
 import { notifyPublicationBannersChanged } from '../../../shared/news/publicationBannerEvents'
 import { showAppSplash, showAppSplashBeforeRedirect } from '../../../shared/ui/axisSplash'
 import { isLocalDevHost } from '../../../shared/auth/isLocalDevHost'
+import { isKeycloakBrowserSsoEnabled } from '../../../shared/auth/keycloakBrowserSso'
 import MS from '../../../shared/ui/MaterialSymbol'
 import {
   AUTH_SESSION_EXPIRED_EVENT,
@@ -1038,9 +1039,9 @@ export default function WorkspaceLayout() {
     setIsLoggingOut(true)
     showAppSplashBeforeRedirect(i18n.t('shell:profile.logoutSplash'))
 
-    // Local dev: /api is proxied to the remote backend, and its Keycloak logout
-    // redirects to the production site. Sign out via the API and stay on this host.
-    if (isLocalDevHost()) {
+    // Private Keycloak and local development profiles use API logout; browser
+    // SSO would otherwise send visitors to an unreachable identity-provider URL.
+    if (isLocalDevHost() || !isKeycloakBrowserSsoEnabled()) {
       notificationRealtimeClient.disconnect()
       try {
         await logoutUseCase.execute()

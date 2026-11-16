@@ -6,6 +6,7 @@ import { createAuthController } from '../auth/createAuthController'
 import AppLoader from '../../shared/ui/AppLoader'
 import { hideAppSplash } from '../../shared/ui/axisSplash'
 import { isLocalDevHost } from '../../shared/auth/isLocalDevHost'
+import { isKeycloakBrowserSsoEnabled } from '../../shared/auth/keycloakBrowserSso'
 import { handoffToTenantWorkspace, isTenantWorkspaceHost } from '../../shared/auth/tenantWorkspace'
 
 const MeetGuestPage = lazy(() => import('../pages/meet/MeetGuestPage'))
@@ -171,7 +172,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [authController, sessionStore, location.pathname])
 
-  const willRedirectToSso = !isChecking && !isAuthenticated && !guestMeetingId && shouldRunSsoCheck && !isLocalDevHost() && !isTenantWorkspaceHost()
+  const willRedirectToSso = !isChecking && !isAuthenticated && !guestMeetingId && shouldRunSsoCheck && isKeycloakBrowserSsoEnabled() && !isLocalDevHost() && !isTenantWorkspaceHost()
 
   useEffect(() => {
     // Keep the splash while leaving for SSO; otherwise the app (or the login redirect) is ready.
@@ -189,7 +190,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!isAuthenticated) {
     if (guestMeetingId) return <MeetGuestPage key={guestMeetingId} meetingId={guestMeetingId} />
     const returnTo = `${location.pathname}${location.search}${location.hash}`
-    if (shouldRunSsoCheck && !isLocalDevHost() && !isTenantWorkspaceHost()) {
+    if (willRedirectToSso) {
       redirectToKeycloakSsoCheck(returnTo)
       return null
     }
@@ -206,7 +207,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         setRequiresPasswordChange(false)
       }}
       onLogout={() => {
-        if (isLocalDevHost()) {
+        if (isLocalDevHost() || !isKeycloakBrowserSsoEnabled()) {
           void authController.logout().finally(() => window.location.assign(`${import.meta.env.BASE_URL}login`))
         } else {
           sessionStore.clearTokens()

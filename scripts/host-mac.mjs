@@ -69,6 +69,7 @@ async function main() {
     VITE_API_URL: '/api/v1',
     VITE_TENANT_BASE_DOMAIN: domain,
     VITE_TENANT_WORKSPACE_ENABLED: 'false',
+    VITE_KEYCLOAK_BROWSER_SSO_ENABLED: 'false',
     // The separate corporate mail service is not deployed on this Mac.
     // Do not carry an old domain's credential bridge into this build.
     VITE_MAIL_APP_URL: origin,

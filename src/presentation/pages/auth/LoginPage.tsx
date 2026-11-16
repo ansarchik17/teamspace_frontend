@@ -7,6 +7,7 @@ import { HttpAuthRepository } from '../../../infrastructure/repositories/HttpAut
 import { consumeAuthFlashNotice, type AuthFlashNotice } from '../../../shared/auth/authFlashNotice'
 import { isTenantWorkspaceHost, platformLoginUrl } from '../../../shared/auth/tenantWorkspace'
 import { corporateLoginAvailable, loginOrganization } from '../../../shared/auth/corporateLogin'
+import { isKeycloakBrowserSsoEnabled } from '../../../shared/auth/keycloakBrowserSso'
 import { ArrowUp, CircleAlert, ClipboardList, Headset, Info, PanelsTopLeft, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react'
 import EdoIcon from '../../../shared/ui/icons/EdoIcon'
 import { getErrorMessage } from '../../../shared/utils/getErrorMessage'
@@ -93,7 +94,7 @@ export default function LoginPage() {
   const [loginHint, setLoginHint] = useState('')
   const [corporateLogin, setCorporateLogin] = useState<{ organization: string; available: boolean } | null>(null)
   const corporateOrganization = loginOrganization(organizationSlug, loginHint, import.meta.env.VITE_TENANT_BASE_DOMAIN || 'teamspace.kz')
-  const canUseCorporateLogin = !tenantLoginHost && corporateOrganization !== null && corporateLogin?.organization === corporateOrganization && corporateLogin.available
+  const canUseCorporateLogin = isKeycloakBrowserSsoEnabled() && !tenantLoginHost && corporateOrganization !== null && corporateLogin?.organization === corporateOrganization && corporateLogin.available
   const { authController, sessionStore } = useMemo(() => createAuthController(), [])
   const passwordLoginUseCase = useMemo(() => new LoginUseCase(new HttpAuthRepository(), sessionStore), [sessionStore])
 
@@ -116,7 +117,7 @@ export default function LoginPage() {
   }, [authController, navigate, redirectTo, tenantLoginHost])
 
   useEffect(() => {
-    if (tenantLoginHost || !corporateOrganization) return
+    if (!isKeycloakBrowserSsoEnabled() || tenantLoginHost || !corporateOrganization) return
     const controller = new AbortController()
     const timer = window.setTimeout(() => {
       void corporateLoginAvailable(corporateOrganization, controller.signal).then(available => {

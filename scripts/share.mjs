@@ -152,6 +152,7 @@ async function main() {
   await run('frontend-build', 'npm', ['run', 'build'], { env: {
     ...process.env, VITE_API_URL: '/api/v1', VITE_MAIL_APP_URL: origin,
     VITE_TENANT_BASE_DOMAIN: 'unitespace.kz', VITE_TENANT_WORKSPACE_ENABLED: 'false',
+    VITE_KEYCLOAK_BROWSER_SSO_ENABLED: 'false',
   } })
   rmSync(resolve(cache, 'dist'), { recursive: true, force: true })
   cpSync(resolve(root, 'dist'), resolve(cache, 'dist'), { recursive: true })

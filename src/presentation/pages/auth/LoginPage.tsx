@@ -8,8 +8,7 @@ import { consumeAuthFlashNotice, type AuthFlashNotice } from '../../../shared/au
 import { isTenantWorkspaceHost, platformLoginUrl } from '../../../shared/auth/tenantWorkspace'
 import { corporateLoginAvailable, loginOrganization } from '../../../shared/auth/corporateLogin'
 import { isKeycloakBrowserSsoEnabled } from '../../../shared/auth/keycloakBrowserSso'
-import { ArrowUp, CircleAlert, ClipboardList, Headset, Info, PanelsTopLeft, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react'
-import EdoIcon from '../../../shared/ui/icons/EdoIcon'
+import { ArrowUp, CircleAlert, Info, PanelsTopLeft, Sparkles, TriangleAlert } from 'lucide-react'
 import { getErrorMessage } from '../../../shared/utils/getErrorMessage'
 import { createAuthController } from '../../auth/createAuthController'
 import { LoginForm, type PasswordLoginSubmitOptions } from '../../components/auth/LoginForm'
@@ -34,10 +33,6 @@ const heroPrompts = ['first', 'second', 'third', 'fourth'] as const
 const ecosystemApps = [
   { key: 'whiteboard', label: 'Whiteboard', icon: PanelsTopLeft },
   { key: 'ai', label: 'AI', icon: Sparkles },
-  { key: 'iform', label: 'iForm', icon: ClipboardList },
-  { key: 'edo', label: '', icon: EdoIcon },
-  { key: 'senimdesk', label: 'SenimDesk', icon: Headset },
-  { key: 'beketos', label: 'BeketOS', icon: ShieldCheck },
 ] as const
 
 function TypingPrompt({ prompts }: { prompts: string[] }) {
@@ -190,16 +185,14 @@ export default function LoginPage() {
 
           <div className="axis-login-apps">
             <p>{t('hero.apps.label')}</p>
-            <div className="axis-login-marquee">
-              <ul className="axis-login-marquee-track">
-                {[0, 1].map((copy) => ecosystemApps.map(({ key, label, icon: Icon }) => (
-                  <li key={`${copy}-${key}`} aria-hidden={copy === 1 ? true : undefined}>
-                    <Icon strokeWidth={1.8} aria-hidden="true" />
-                    {key === 'edo' ? t('hero.apps.edo') : label}
-                  </li>
-                )))}
-              </ul>
-            </div>
+            <ul className="axis-login-app-list">
+              {ecosystemApps.map(({ key, label, icon: Icon }) => (
+                <li key={key}>
+                  <Icon strokeWidth={1.8} aria-hidden="true" />
+                  {label}
+                </li>
+              ))}
+            </ul>
           </div>
         </aside>
 

@@ -180,32 +180,25 @@
 
 .axis-login-apps { display: grid; gap: 14px; justify-items: center; }
 .axis-login-apps p { margin: 0; font-size: 13px; line-height: 18px; color: rgb(255 255 255 / 72%); }
-.axis-login-marquee {
-  width: 100%;
-  overflow: hidden;
-  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-}
-.axis-login-marquee-track {
+.axis-login-app-list {
   display: flex;
-  width: max-content;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 36px;
   margin: 0;
   padding: 0;
   list-style: none;
-  animation: axis-marquee 28s linear infinite;
 }
-.axis-login-marquee:hover .axis-login-marquee-track { animation-play-state: paused; }
-.axis-login-marquee-track li {
+.axis-login-app-list li {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding-inline: 18px;
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
   color: rgb(255 255 255 / 92%);
 }
-.axis-login-marquee-track svg { width: 17px; height: 17px; }
-@keyframes axis-marquee { to { transform: translateX(-50%); } }
+.axis-login-app-list svg { width: 17px; height: 17px; }
 
 /* Form panel. */
 .axis-login-panel { display: flex; flex-direction: column; min-width: 0; padding: 24px 28px 24px clamp(32px, 4vw, 64px); }
@@ -431,7 +424,4 @@
   .axis-login-caret,
   .axis-login-hero::before,
   .axis-login-hero::after { animation: none; }
-  .axis-login-marquee { mask-image: none; }
-  .axis-login-marquee-track { flex-wrap: wrap; justify-content: center; width: auto; animation: none; row-gap: 8px; }
-  .axis-login-marquee-track li[aria-hidden="true"] { display: none; }
 }

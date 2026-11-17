@@ -28,11 +28,11 @@ async function freePort() {
   await close(server)
   return port
 }
-function request(port, path, { tls = false, tunnel = false, method = 'GET', body } = {}) {
+function request(port, path, { tls = false, tunnel = false, host, forwardedProto, method = 'GET', body } = {}) {
   return new Promise((resolvePromise, reject) => {
     const req = (tls ? httpsRequest : httpRequest)({
       hostname: '127.0.0.1', port, path, method,
-      headers: { Host: tls || tunnel ? 'unitespace.kz' : `127.0.0.1:${port}`, ...(tunnel ? { 'X-Forwarded-Proto': 'https' } : {}) },
+      headers: { Host: host || (tls || tunnel ? 'unitespace.kz' : `127.0.0.1:${port}`), ...(tunnel ? { 'X-Forwarded-Proto': forwardedProto || 'https' } : {}) },
       ...(tls ? { servername: 'unitespace.kz', ca: certificate } : {}),
       timeout: 3_000,
     }, res => {
@@ -72,13 +72,14 @@ try {
   assert.equal(openssl.status, 0, 'Test requires OpenSSL with -addext support')
   certificate = await readFile(cert)
 
-  for (const profile of ['preview', 'https', 'tunnel']) {
+  for (const profile of ['preview', 'https', 'tunnel', 'named-tunnel']) {
     const publicProfile = profile === 'https'
-    const tunnelProfile = profile === 'tunnel'
+    const namedProfile = profile === 'named-tunnel'
+    const tunnelProfile = profile === 'tunnel' || namedProfile
     const port = await freePort()
     const tlsPort = await freePort()
-    let config = await readFile(join(root, 'deploy/mac', publicProfile ? 'Caddyfile' : tunnelProfile ? 'tunnel.Caddyfile' : 'preview.Caddyfile'), 'utf8')
-    config = config.replaceAll('9080', String(port)).replaceAll('9081', String(port)).replaceAll('9443', String(tlsPort))
+    let config = await readFile(join(root, 'deploy/mac', publicProfile ? 'Caddyfile' : namedProfile ? 'named-tunnel.Caddyfile' : tunnelProfile ? 'tunnel.Caddyfile' : 'preview.Caddyfile'), 'utf8')
+    config = config.replaceAll('9080', String(port)).replaceAll('9081', String(port)).replaceAll('9082', String(port)).replaceAll('9443', String(tlsPort))
     config = config.replace('{\n', '{\n\tdefault_bind 127.0.0.1\n\tpersist_config off\n')
     if (publicProfile) config = config.replace(`https://unitespace.kz:${tlsPort} {`, `https://unitespace.kz:${tlsPort} {\n\ttls ${cert} ${key}`)
     const path = join(temp, 'Caddyfile')
@@ -128,6 +129,15 @@ try {
     assert.equal(uploaded.path, s3Path, 'S3 signed path/query must remain intact')
     assert.equal(uploaded.host, publicProfile || tunnelProfile ? 'unitespace.kz' : `127.0.0.1:${port}`)
     assert.equal(uploaded.body, 'upload fixture')
+    if (namedProfile) {
+      const plain = await get('/web/login?q=1', { forwardedProto: 'http' })
+      assert.equal(plain.status, 308)
+      assert.equal(plain.headers.location, 'https://unitespace.kz/web/login?q=1')
+      const www = await get('/web/workspace?q=2', { host: 'www.unitespace.kz' })
+      assert.equal(www.status, 308)
+      assert.equal(www.headers.location, 'https://unitespace.kz/web/workspace?q=2')
+      assert.equal((await get('/web/login', { host: 'unrelated.example' })).status, 404)
+    }
     if (publicProfile) {
       // Match the public hostname while connecting only to a local test port.
       const result = await new Promise((resolvePromise, reject) => {

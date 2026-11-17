@@ -1,0 +1,28 @@
+{
+	admin off
+	persist_config off
+	servers {
+		trusted_proxies static 127.0.0.1/32 ::1/128
+		trusted_proxies_strict
+	}
+}
+
+import routes.caddy
+
+# cloudflared connects locally; public HTTPS terminates at Cloudflare.
+http://unitespace.kz:9082 {
+	bind 127.0.0.1
+	@plain header X-Forwarded-Proto http
+	redir @plain https://unitespace.kz{uri} 308
+	import unitespace
+}
+
+http://www.unitespace.kz:9082 {
+	bind 127.0.0.1
+	redir https://unitespace.kz{uri} 308
+}
+
+http://:9082 {
+	bind 127.0.0.1
+	respond 404
+}

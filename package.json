@@ -17,6 +17,8 @@
     "preview": "vite preview",
     "host:mac": "node scripts/host-mac.mjs",
     "host:mac:preview": "node scripts/host-mac.mjs --preview",
+    "host:tunnel": "node scripts/share.mjs --domain",
+    "host:tunnel:stop": "node scripts/share.mjs --domain --stop",
     "test:mac-hosting": "node scripts/test-mac-hosting.mjs",
     "test:share-browser": "node scripts/test-share-browser.mjs",
     "share": "node scripts/share.mjs",
